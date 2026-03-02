@@ -32,6 +32,10 @@
   High: /start ~40% match (missing parallelism, flags, anti-hallucination).
   Medium: /docs ~70% match (missing section templates). /test, /deploy, /review OK.
 
+- [010: Feature re-implementation — SPARC docs for all 15 features](010-feature-reimplementation-sparc-docs.md)
+  High: All 15 features had code but zero per-feature docs. Retroactive SPARC generation via 14 parallel
+  agents produced 70 docs + 1 plan. Phase 4 review caught 22 ruff issues. 100% documentation coverage.
+
 ## Feature Implementation
 
 - [002: Phase 4 REVIEW catches real issues](002-feature-review-phase-value.md)
