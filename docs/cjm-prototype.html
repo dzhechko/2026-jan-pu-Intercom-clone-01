@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CJM Prototype: Open Agentic Platform (Hybrid B+D)</title>
+<style>
+  :root {
+    --primary: #6366F1;
+    --secondary: #8B5CF6;
+    --accent: #06B6D4;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --bg: #0F172A;
+    --bg-light: #1E293B;
+    --bg-card: #334155;
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+  /* Header */
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .header h1 { font-size: 1.5rem; }
+  .header p { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 0.25rem; margin-bottom: 1rem;
+    flex-wrap: wrap; position: sticky; top: 0; z-index: 10;
+    background: var(--bg); padding: 0.5rem 0;
+  }
+  .tab {
+    padding: 8px 16px; background: var(--bg-light); color: var(--text-muted);
+    border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .tab:hover { background: var(--bg-card); }
+  .tab.active { background: var(--primary); color: #fff; font-weight: 600; }
+
+  /* Overlay */
+  .overlay-toggle {
+    padding: 6px 14px; background: var(--primary); color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+  }
+  .overlay-toggle.off { background: var(--bg-card); }
+  .cjm-overlay {
+    background: rgba(99, 102, 241, 0.15); border: 1px solid var(--primary);
+    border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;
+    font-size: 0.85rem; display: none;
+  }
+  .cjm-overlay.show { display: block; }
+  .cjm-overlay .badge {
+    background: var(--primary); color: #fff; padding: 2px 8px;
+    border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;
+  }
+  .cjm-overlay .question { color: var(--warning); margin-top: 0.5rem; }
+
+  /* Screen */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Cards & Panels */
+  .card {
+    background: var(--bg-light); padding: 1.5rem; border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .card-bordered { border-left: 4px solid var(--primary); }
+
+  /* Source badges */
+  .source-badge {
+    margin: 4px 0; padding: 4px 8px; background: var(--bg-light);
+    border-radius: 4px; font-size: 0.75rem; border-left: 3px solid var(--accent);
+  }
+  .source-badge a {
+    color: var(--accent); text-decoration: none;
+  }
+  .source-badge a:hover { text-decoration: underline; }
+  .source-badge .publisher { color: var(--text-muted); }
+
+  .source-link {
+    color: var(--accent); font-size: 0.75rem; text-decoration: underline;
+  }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+  .grid-dashboard { display: grid; grid-template-columns: 250px 1fr 250px; gap: 1rem; }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4, .grid-5, .grid-dashboard {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Typography */
+  .headline {
+    font-size: 2.5rem; font-weight: 800; text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subheadline { font-size: 1.25rem; color: var(--text-muted); text-align: center; }
+  .section-title { font-size: 1.75rem; margin-bottom: 1.5rem; }
+
+  /* Buttons */
+  .btn {
+    padding: 12px 24px; border-radius: 8px; border: none;
+    font-weight: 600; cursor: pointer; font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #4F46E5; }
+  .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--bg-card); }
+  .btn-full { width: 100%; margin-top: 1rem; padding: 10px; border-radius: 6px; }
+
+  /* Badges */
+  .badge-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+  .badge-pill {
+    padding: 4px 12px; background: var(--bg-card); border-radius: 999px;
+    font-size: 0.85rem; color: var(--accent);
+  }
+
+  /* Code */
+  pre {
+    background: var(--bg); padding: 1rem; border-radius: 6px;
+    font-size: 0.9rem; color: var(--success); overflow-x: auto;
+    margin-top: 0.75rem;
+  }
+
+  /* Metric cards */
+  .metric-card {
+    background: var(--bg-light); padding: 1rem; border-radius: 8px; text-align: center;
+  }
+  .metric-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Pricing */
+  .plan-card {
+    background: var(--bg-light); padding: 1.5rem; border-radius: 8px;
+    border: 1px solid var(--bg-card); position: relative;
+  }
+  .plan-card.featured { border: 2px solid var(--primary); }
+  .plan-card .popular-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--primary); color: #fff; padding: 2px 12px;
+    border-radius: 999px; font-size: 0.75rem;
+  }
+  .plan-name { color: var(--accent); font-size: 1.1rem; font-weight: 600; }
+  .plan-price { font-size: 2rem; font-weight: 800; }
+  .plan-period { color: var(--text-muted); }
+  .plan-tagline { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .plan-features { list-style: none; padding: 0; }
+  .plan-features li { padding: 4px 0; font-size: 0.85rem; }
+  .plan-comparison {
+    margin-top: 1rem; padding: 8px; background: var(--bg-card);
+    border-radius: 4px; font-size: 0.75rem; color: var(--warning);
+  }
+
+  /* Success text */
+  .text-success { color: var(--success); }
+  .text-danger { color: var(--danger); }
+  .text-accent { color: var(--accent); }
+  .text-muted { color: var(--text-muted); }
+  .text-warning { color: var(--warning); }
+  .fw-bold { font-weight: 700; }
+  .text-center { text-align: center; }
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+  .mt-3 { margin-top: 1.5rem; }
+  .mb-1 { margin-bottom: 0.5rem; }
+  .mb-2 { margin-bottom: 1rem; }
+
+  /* MCP server row */
+  .mcp-row {
+    display: flex; gap: 0.75rem; padding: 8px 0;
+    border-bottom: 1px solid var(--bg-card); font-size: 0.9rem;
+  }
+
+  /* Channel grid */
+  .channel-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 8px 12px; background: var(--bg-card); border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .channel-status { margin-left: auto; font-size: 0.75rem; }
+  .channel-status.auto { color: var(--success); }
+  .channel-status.connect { color: var(--text-muted); }
+
+  /* Simulation */
+  .sim-step {
+    display: flex; gap: 0.75rem; padding: 4px 0; color: var(--success);
+    font-size: 0.85rem;
+  }
+  .sim-tool { color: var(--accent); font-size: 0.75rem; min-width: 110px; }
+  .sim-time { margin-left: auto; color: var(--text-muted); font-size: 0.75rem; }
+
+  /* Agent row */
+  .agent-row {
+    padding: 6px 0; border-bottom: 1px solid var(--bg-card); font-size: 0.85rem;
+  }
+  .agent-role { color: var(--text-muted); font-size: 0.75rem; }
+
+  /* Copilot feature */
+  .copilot-feature {
+    padding: 6px 0; border-bottom: 1px solid var(--bg-card); font-size: 0.85rem;
+  }
+
+  /* Score grid */
+  .score-item { background: var(--bg-light); padding: 1rem; border-radius: 8px; }
+  .score-label { font-size: 0.85rem; color: var(--text-muted); }
+  .score-stars { font-size: 1.25rem; color: var(--accent); margin: 0.25rem 0; }
+  .score-detail { font-size: 0.8rem; }
+  .score-total {
+    text-align: center; margin-top: 1.5rem; font-size: 2rem;
+    font-weight: 800; color: var(--success);
+  }
+
+  /* Sources panel */
+  .source-card {
+    display: block; padding: 8px 12px; background: var(--bg-light);
+    border-radius: 6px; text-decoration: none; color: var(--text);
+    font-size: 0.8rem; border-left: 3px solid var(--accent);
+    transition: background 0.2s;
+  }
+  .source-card:hover { background: var(--bg-card); }
+  .source-card .pub { color: var(--accent); font-weight: 600; }
+  .source-card .fact { color: var(--text-muted); margin-top: 2px; }
+
+  /* Commerce */
+  .product-card {
+    display: flex; align-items: center; gap: 1rem; padding: 8px;
+    background: var(--bg); border-radius: 6px;
+  }
+  .product-thumb {
+    width: 60px; height: 60px; background: var(--primary); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+  }
+  .commerce-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .btn-commerce {
+    padding: 8px 16px; border-radius: 6px; border: none;
+    cursor: pointer; font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ============ HEADER ============ -->
+  <div class="header">
+    <div>
+      <h1>🚀 CJM: Open Agentic Platform</h1>
+      <p>Hybrid B (Developer-First) + D (Agentic Platform 2026) — Intercom Clone</p>
+    </div>
+    <button class="overlay-toggle" id="overlayToggle" onclick="toggleOverlay()">🔍 CJM Overlay ON</button>
+  </div>
+
+  <!-- ============ TABS ============ -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="showScreen('landing', this)">🏠 Landing</button>
+    <button class="tab" onclick="showScreen('onboarding', this)">🚀 Onboarding</button>
+    <button class="tab" onclick="showScreen('aha', this)">⚡ Aha Moment</button>
+    <button class="tab" onclick="showScreen('dashboard', this)">🎛️ Command Center</button>
+    <button class="tab" onclick="showScreen('paywall', this)">💰 Pricing</button>
+    <button class="tab" onclick="showScreen('commerce', this)">🛒 Commerce</button>
+    <button class="tab" onclick="showScreen('scoring', this)">🏆 Scoring</button>
+    <button class="tab" onclick="showScreen('sources', this)">📎 Sources</button>
+  </div>
+
+  <!-- ============ CJM OVERLAYS (per screen) ============ -->
+  <div class="cjm-overlay show" id="overlay-landing">
+    <span class="badge">A — Acquisition</span> <strong>Landing</strong> <span class="text-muted">Metric: Visitor → Signup conversion</span>
+    <p class="question">🧪 Does the headline speak to a real pain? Would you click CTA?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-onboarding">
+    <span class="badge">A — Activation</span> <strong>Onboarding</strong> <span class="text-muted">Metric: Signup → First AI Resolution</span>
+    <p class="question">🧪 Can you complete setup in &lt;15 min? Where did you get stuck?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-aha">
+    <span class="badge">A — Activation (peak)</span> <strong>Aha Moment</strong> <span class="text-muted">Metric: First autonomous action completed</span>
+    <p class="question">🧪 Did the AI action surprise you? Would you trust it with real operations?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-dashboard">
+    <span class="badge">R — Retention</span> <strong>Engagement</strong> <span class="text-muted">Metric: DAU/MAU, sessions/week</span>
+    <p class="question">🧪 Would you check this dashboard daily? What's missing?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-paywall">
+    <span class="badge">R — Revenue</span> <strong>Monetization</strong> <span class="text-muted">Metric: Free → Paid conversion</span>
+    <p class="question">🧪 Is the pricing clear? Would you pay $0.49/resolution?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-commerce">
+    <span class="badge">R — Revenue (expansion)</span> <strong>Conversational Commerce</strong> <span class="text-muted">Metric: In-chat purchase rate</span>
+    <p class="question">🧪 Would you buy a product through chat? What's stopping you?</p>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: LANDING                                           -->
+  <!-- ======================================================== -->
+  <div class="screen active" id="screen-landing">
+    <div class="text-center mb-2">
+      <h2 class="headline">AI Agents That ACT. Not Just Chat.</h2>
+      <p class="subheadline mt-1">Open-source agentic support platform. Self-hosted. BYO LLM. MCP-native.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; margin-top:1.5rem; flex-wrap:wrap;">
+        <button class="btn btn-primary">Deploy Self-Hosted (Free)</button>
+        <button class="btn btn-outline">Try Cloud Free</button>
+        <button class="btn btn-ghost">⭐ Star on GitHub</button>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-3">
+      <div class="card" style="border: 1px solid rgba(239,68,68,0.2);">
+        <h3 class="text-danger mb-1">❌ Typical AI Chatbot</h3>
+        <p class="text-muted" style="font-style:italic;">"Here are the instructions for a refund: go to Settings &gt; Billing &gt; ..."</p>
+        <p class="text-danger mt-2">Customer does everything manually. 😤</p>
+      </div>
+      <div class="card" style="border: 1px solid rgba(16,185,129,0.2);">
+        <h3 class="text-success mb-1">✅ Our AI Agent</h3>
+        <p class="text-success">✓ Checked order #4821 via Stripe MCP</p>
+        <p class="text-success">✓ Created refund request ($49.00)</p>
+        <p class="text-success">✓ Processed refund to card •••4242</p>
+        <p class="text-success">✓ Notified customer via email</p>
+        <p class="text-success fw-bold mt-2">Done. 3 seconds. Zero human effort. 🎯</p>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge-pill">Open Source</span>
+      <span class="badge-pill">Self-Hosted</span>
+      <span class="badge-pill">BYO LLM</span>
+      <span class="badge-pill">MCP-Native</span>
+      <span class="badge-pill">Voice AI</span>
+    </div>
+
+    <div class="mt-3">
+      <div class="source-badge">
+        <a href="https://www.index.dev/blog/ai-agents-statistics" target="_blank">📎 AI Agent market: $7.84B (2025) → $52.62B (2030), CAGR 46.3%</a>
+        <span class="publisher"> — Index.dev</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">📎 80% of customer service issues resolved autonomously by 2029</a>
+        <span class="publisher"> — Gartner</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: ONBOARDING                                        -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-onboarding">
+    <h2 class="section-title">⚡ Setup in &lt; 15 min</h2>
+    <p class="text-muted mb-2">From zero to first AI resolution</p>
+
+    <!-- Step 1 -->
+    <div class="card card-bordered">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="text-accent">Step 1: Install & Run</h3>
+        <span class="text-muted" style="font-size:0.85rem;">~2 min</span>
+      </div>
+      <pre>npx create-agentic-support my-support
+cd my-support
+docker compose up
+# ✅ Running on http://localhost:3000</pre>
+      <p class="text-muted mt-1" style="font-size:0.85rem;">Or: one-click deploy to cloud</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="card card-bordered">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="text-accent">Step 2: Connect Knowledge Sources</h3>
+        <span class="text-muted" style="font-size:0.85rem;">~3 min</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
+        <span class="badge-pill">Docs URL</span>
+        <span class="badge-pill">Notion</span>
+        <span class="badge-pill">Confluence</span>
+        <span class="badge-pill">GitHub Wiki</span>
+        <span class="badge-pill">Upload .md</span>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card card-bordered">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="text-accent">Step 3: Connect Actions via MCP</h3>
+        <span class="text-muted" style="font-size:0.85rem;">~5 min</span>
+      </div>
+      <div class="mcp-row">💳 <strong>Stripe</strong> <span class="text-muted">— refunds, subscriptions, invoices</span></div>
+      <div class="mcp-row">📋 <strong>Jira</strong> <span class="text-muted">— create tickets, update status</span></div>
+      <div class="mcp-row">🗄️ <strong>Database</strong> <span class="text-muted">— read customer data, update records</span></div>
+      <div class="mcp-row">📧 <strong>Email</strong> <span class="text-muted">— send notifications, campaigns</span></div>
+      <div class="mcp-row">🔧 <strong>Custom</strong> <span class="text-muted">— add your own MCP server</span></div>
+      <div class="source-badge mt-1">
+        <a href="https://www.cdata.com/blog/2026-year-enterprise-ready-mcp-adoption" target="_blank">📎 MCP: 97M+ monthly SDK downloads, adopted by Anthropic, OpenAI, Google, Microsoft</a>
+        <span class="publisher"> — CData</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.searchunify.com/resource-center/sudo-technical-blogs/model-context-protocol-the-future-of-ai-in-customer-support-2025/" target="_blank">📎 MCP for AI-Powered Customer Support — universal standard</a>
+        <span class="publisher"> — SearchUnify</span>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="card card-bordered">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="text-accent">Step 4: Configure Channels</h3>
+        <span class="text-muted" style="font-size:0.85rem;">~3 min</span>
+      </div>
+      <div class="grid-3 mt-1">
+        <div class="channel-item">💬 Chat Widget <span class="channel-status auto">✅ auto</span></div>
+        <div class="channel-item">📧 Email <span class="channel-status auto">✅ auto</span></div>
+        <div class="channel-item">📱 WhatsApp <span class="channel-status connect">connect</span></div>
+        <div class="channel-item">🎙️ Voice AI <span class="channel-status connect">connect</span></div>
+        <div class="channel-item">✈️ Telegram <span class="channel-status connect">connect</span></div>
+        <div class="channel-item">💼 Slack <span class="channel-status connect">connect</span></div>
+      </div>
+      <div class="source-badge mt-1">
+        <a href="https://mobileecosystemforum.com/2025/12/17/whatsapp-opens-a-new-front-in-business-voice-with-calling-api/" target="_blank">📎 WhatsApp Business Calling API launched Dec 2025 — voice + video in business threads</a>
+        <span class="publisher"> — MEF</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.retellai.com/blog/best-voice-ai-agent-platforms" target="_blank">📎 Voice AI market projected $47.5B by 2034, CAGR 22.7%</a>
+        <span class="publisher"> — Retell AI</span>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="card card-bordered">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 class="text-accent">Step 5: Test Drive Your Agent</h3>
+        <span class="text-muted" style="font-size:0.85rem;">~2 min</span>
+      </div>
+      <div style="background:var(--bg); padding:1rem; border-radius:6px; margin-top:0.75rem;">
+        <p class="text-muted">Customer: <em>"I want to return order #4821, the item arrived damaged"</em></p>
+        <div class="mt-1">
+          <div class="sim-step"><span class="sim-tool">[Database MCP]</span> Checking order #4821 in database... <span class="sim-time">0.3s</span></div>
+          <div class="sim-step"><span class="sim-tool">[Database MCP]</span> Order found: Blue Widget, $49.00, delivered 2 days ago <span class="sim-time">0.1s</span></div>
+          <div class="sim-step"><span class="sim-tool">[Knowledge Base]</span> Checking return policy: eligible (within 30 days) <span class="sim-time">0.2s</span></div>
+          <div class="sim-step"><span class="sim-tool">[Stripe MCP]</span> Initiating refund of $49.00 to card •••4242 <span class="sim-time">0.8s</span></div>
+          <div class="sim-step"><span class="sim-tool">[Email MCP]</span> Refund processed ✅ Sending confirmation email <span class="sim-time">0.4s</span></div>
+        </div>
+        <p class="text-success fw-bold mt-2">Total: 1.8s | Customer receives: "Your refund of $49.00 has been processed."</p>
+      </div>
+    </div>
+
+    <div class="source-badge mt-1">
+      <a href="https://www.searchunify.com/resource-center/blog/agentic-ai-in-customer-support-a-2026-data-driven-deep-dive" target="_blank">📎 56% of support interactions will use agentic AI by mid-2026</a>
+      <span class="publisher"> — SearchUnify</span>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: AHA MOMENT                                        -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-aha">
+    <div class="text-center">
+      <div style="font-size:4rem; margin-bottom:1rem;">⚡</div>
+      <h2 class="headline">The AI Didn't Just Answer — It DID The Thing</h2>
+      <p class="text-muted mt-2" style="max-width:600px; margin:1rem auto;">
+        The moment you see your AI agent autonomously execute a multi-step action (check order → verify policy → process refund → notify customer) — not just paste an FAQ link.
+      </p>
+      <div class="card mt-3" style="max-width:400px; margin:1.5rem auto; border:2px solid var(--success); text-align:center;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--success);">1.8 seconds. 4 actions. Zero human effort.</div>
+        <div class="text-muted mt-1">KPI: First autonomous action completed</div>
+      </div>
+      <div class="card mt-2" style="max-width:500px; margin:1rem auto; background:var(--bg-card);">
+        <p class="text-warning" style="font-size:0.9rem;">🧪 CustDev Question: Would you trust this AI agent to handle real customer requests with real money?</p>
+      </div>
+      <div class="mt-2">
+        <div class="source-badge">
+          <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">📎 80% of customer service issues resolved autonomously by 2029</a>
+          <span class="publisher"> — Gartner</span>
+        </div>
+        <div class="source-badge">
+          <a href="https://www.index.dev/blog/ai-agents-statistics" target="_blank">📎 AI Agent market: $7.84B (2025) → $52.62B (2030), CAGR 46.3%</a>
+          <span class="publisher"> — Index.dev</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: DASHBOARD / COMMAND CENTER                        -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-dashboard">
+    <h2 class="section-title">🎛️ Command Center</h2>
+
+    <div class="grid-dashboard">
+      <!-- Multi-Agent Hub -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">🤖 Multi-Agent Hub</h3>
+        <div class="agent-row"><div class="fw-bold">Triage Agent</div><div class="agent-role">Routes & prioritizes</div></div>
+        <div class="agent-row"><div class="fw-bold">Billing Agent</div><div class="agent-role">Stripe actions</div></div>
+        <div class="agent-row"><div class="fw-bold">Technical Agent</div><div class="agent-role">Jira + DB actions</div></div>
+        <div class="agent-row"><div class="fw-bold">Commerce Agent</div><div class="agent-role">Product recs + checkout</div></div>
+        <div class="agent-row"><div class="fw-bold">Human Escalation</div><div class="agent-role">Fallback to team</div></div>
+        <div class="source-badge mt-1">
+          <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">📎 Multi-agent system inquiries surged 1,445% in one year</a>
+          <span class="publisher"> — Gartner</span>
+        </div>
+      </div>
+
+      <!-- Live Conversation -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">💬 Live Conversation</h3>
+        <div style="background:var(--bg); padding:0.75rem; border-radius:6px;">
+          <p class="text-muted"><em>Customer: "My payment failed and my subscription was cancelled"</em></p>
+          <p class="text-accent mt-1" style="font-size:0.85rem;">🤖 Billing Agent:</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ Checked Stripe: card_declined (insufficient_funds)</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ Restored subscription to active state</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ Sent new payment link via email</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ Response: "All restored! Here's a fresh payment link."</p>
+        </div>
+      </div>
+
+      <!-- Copilot Panel -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">🧠 AI Copilot</h3>
+        <div class="copilot-feature">💡 <strong>Suggested Reply</strong><br><span class="text-muted" style="font-size:0.75rem;">AI-drafted response from KB + context</span></div>
+        <div class="copilot-feature">😠→😊 <strong>Sentiment</strong><br><span class="text-muted" style="font-size:0.75rem;">Real-time emotion tracking</span></div>
+        <div class="copilot-feature">📊 <strong>QA Score</strong><br><span class="text-muted" style="font-size:0.75rem;">Auto-scored 94/100</span>
+          <br><a href="https://www.observe.ai/post-interaction/auto-qa" target="_blank" class="source-link">[Observe.AI]</a>
+        </div>
+        <div class="copilot-feature">📈 <strong>Similar Cases</strong><br><span class="text-muted" style="font-size:0.75rem;">23 similar cases this week</span></div>
+        <div class="source-badge mt-1">
+          <a href="https://www.assembled.com/blog/ai-copilots-customer-support" target="_blank">📎 90% of CX leaders report positive ROI from AI copilots</a>
+          <span class="publisher"> — Assembled</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="grid-4 mt-2">
+      <div class="metric-card"><div class="metric-value">847/1,021</div><div class="metric-label">AI Resolved</div><div class="text-success" style="font-size:0.85rem;">83%</div></div>
+      <div class="metric-card"><div class="metric-value">12 sec</div><div class="metric-label">Avg Resolution</div></div>
+      <div class="metric-card"><div class="metric-value">94%</div><div class="metric-label">CSAT</div></div>
+      <div class="metric-card"><div class="metric-value">$0.31</div><div class="metric-label">Cost per Resolution</div></div>
+      <div class="metric-card"><div class="metric-value">2,340</div><div class="metric-label">Actions Executed</div></div>
+      <div class="metric-card"><div class="metric-value">$12,400</div><div class="metric-label">Monthly Savings</div></div>
+      <div class="metric-card"><div class="metric-value">89</div><div class="metric-label">Voice Calls Handled</div></div>
+      <div class="metric-card"><div class="metric-value">6</div><div class="metric-label">Active Channels</div></div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: PAYWALL / PRICING                                 -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-paywall">
+    <h2 class="section-title text-center">Simple, Transparent Pricing</h2>
+    <p class="text-muted text-center mb-2">Self-hosted is free forever. Cloud scales with you.</p>
+
+    <div class="grid-5">
+      <!-- Self-Hosted -->
+      <div class="plan-card">
+        <div class="plan-name">🏠 Self-Hosted</div>
+        <div class="plan-price mt-1">FREE</div>
+        <div class="plan-period">forever</div>
+        <p class="plan-tagline">Your data, your servers, your control</p>
+        <ul class="plan-features">
+          <li>✓ Full platform (all features)</li>
+          <li>✓ Unlimited conversations</li>
+          <li>✓ Unlimited agents</li>
+          <li>✓ BYO LLM key</li>
+          <li>✓ Docker / Kubernetes</li>
+          <li>✓ Community support</li>
+          <li>✓ GDPR: full data control</li>
+        </ul>
+        <button class="btn btn-outline btn-full">docker compose up</button>
+        <div class="mt-1">
+          <a href="https://secureprivacy.ai/blog/data-privacy-trends-2026" target="_blank" class="source-link">[SecurePrivacy: GDPR]</a>
+          <a href="https://github.com/chatwoot/chatwoot" target="_blank" class="source-link" style="margin-left:4px;">[Chatwoot OSS]</a>
+        </div>
+      </div>
+
+      <!-- Cloud Free -->
+      <div class="plan-card">
+        <div class="plan-name">☁️ Cloud Free</div>
+        <div class="plan-price mt-1">$0</div>
+        <div class="plan-period">/month</div>
+        <p class="plan-tagline">Get started in 30 seconds</p>
+        <ul class="plan-features">
+          <li>✓ 100 AI resolutions/mo</li>
+          <li>✓ 1 agent seat</li>
+          <li>✓ 2 channels</li>
+          <li>✓ Basic knowledge base</li>
+          <li>✓ Community support</li>
+        </ul>
+        <button class="btn btn-outline btn-full">Start Free</button>
+      </div>
+
+      <!-- Starter (Featured) -->
+      <div class="plan-card featured">
+        <div class="popular-badge">MOST POPULAR</div>
+        <div class="plan-name">⚡ Starter</div>
+        <div class="plan-price mt-1">$0.49</div>
+        <div class="plan-period">/resolution</div>
+        <p class="plan-tagline">Pay only when AI resolves. No seat fees.</p>
+        <ul class="plan-features">
+          <li>✓ Unlimited AI resolutions</li>
+          <li>✓ 3 agent seats included</li>
+          <li>✓ All channels</li>
+          <li>✓ MCP integrations (5)</li>
+          <li>✓ AI Copilot</li>
+          <li>✓ Basic analytics</li>
+          <li>✓ Email support</li>
+        </ul>
+        <div class="plan-comparison">💡 Intercom: $29/seat + $0.99/resolution = 2x more expensive</div>
+        <button class="btn btn-primary btn-full">Start Starter</button>
+      </div>
+
+      <!-- Team -->
+      <div class="plan-card">
+        <div class="plan-name">👥 Team</div>
+        <div class="plan-price mt-1">$39</div>
+        <div class="plan-period">/seat/month</div>
+        <p class="plan-tagline">For growing support teams</p>
+        <ul class="plan-features">
+          <li>✓ Everything in Starter</li>
+          <li>✓ $0.29/resolution</li>
+          <li>✓ Unlimited seats</li>
+          <li>✓ Multi-agent orchestration</li>
+          <li>✓ Voice AI channel</li>
+          <li>✓ Conversational commerce</li>
+          <li>✓ Auto QA (100% scoring)</li>
+          <li>✓ Advanced analytics + API</li>
+          <li>✓ Priority support</li>
+        </ul>
+        <button class="btn btn-outline btn-full">Start Team Trial</button>
+        <div class="mt-1">
+          <a href="https://www.retellai.com/blog/best-voice-ai-agent-platforms" target="_blank" class="source-link">[Voice AI market]</a>
+          <a href="https://www.mordorintelligence.com/industry-reports/conversational-commerce-market" target="_blank" class="source-link" style="margin-left:4px;">[Conv. Commerce]</a>
+        </div>
+      </div>
+
+      <!-- Scale -->
+      <div class="plan-card">
+        <div class="plan-name">🏢 Scale</div>
+        <div class="plan-price mt-1">$99</div>
+        <div class="plan-period">/seat/month</div>
+        <p class="plan-tagline">Enterprise-ready, compliance-included</p>
+        <ul class="plan-features">
+          <li>✓ Everything in Team</li>
+          <li>✓ Unlimited AI included</li>
+          <li>✓ SSO / SAML</li>
+          <li>✓ HIPAA compliance</li>
+          <li>✓ SLA 99.9%</li>
+          <li>✓ Custom AI training</li>
+          <li>✓ Dedicated infra</li>
+          <li>✓ EU data residency</li>
+          <li>✓ EU AI Act toolkit</li>
+        </ul>
+        <button class="btn btn-outline btn-full">Contact Sales</button>
+        <div class="mt-1">
+          <a href="https://secureprivacy.ai/blog/privacy-laws-2026" target="_blank" class="source-link">[EU AI Act]</a>
+          <a href="https://secureprivacy.ai/blog/data-privacy-trends-2026" target="_blank" class="source-link" style="margin-left:4px;">[GDPR fines]</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: COMMERCE                                          -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-commerce">
+    <h2 class="section-title">🛒 Conversational Commerce (Expansion Module)</h2>
+
+    <div class="card mt-2">
+      <p class="text-muted">Customer: <em>"I want the same shirt but in blue, size M"</em></p>
+
+      <div class="mt-2">
+        <div class="product-card">
+          <div class="product-thumb">🔵</div>
+          <div>
+            <div class="fw-bold">Blue Classic Tee, Size M</div>
+            <div class="text-accent fw-bold" style="font-size:1.25rem;">$29.99</div>
+          </div>
+        </div>
+
+        <div class="commerce-actions mt-1">
+          <button class="btn-commerce" style="background:var(--bg-card); color:var(--text);">🛒 Add to Cart</button>
+          <button class="btn-commerce" style="background:var(--primary); color:#fff;">💳 Pay in Chat — Stripe</button>
+        </div>
+
+        <div style="background:var(--bg); padding:8px; border-radius:6px; margin-top:0.75rem;">
+          <p class="text-success fw-bold">✅ Payment accepted! Tracking: #TRK-8841</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <div class="source-badge">
+        <a href="https://www.mordorintelligence.com/industry-reports/conversational-commerce-market" target="_blank">📎 Conversational Commerce: $11.26B (2025) → $20.28B (2030), CAGR 12.47%</a>
+        <span class="publisher"> — Mordor Intelligence</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.bigcommerce.com/articles/ecommerce/conversational-commerce/" target="_blank">📎 66% of consumers ready to buy via messaging, 4x conversion vs websites</a>
+        <span class="publisher"> — BigCommerce</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://bigsur.ai/blog/conversational-commerce-statistics" target="_blank">📎 Chatbot websites see +23% conversion boost</a>
+        <span class="publisher"> — BigSur AI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: SCORING                                           -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-scoring">
+    <h2 class="section-title">🏆 Scoring: Hybrid B+D — Open Agentic Platform</h2>
+
+    <div class="grid-3">
+      <div class="score-item">
+        <div class="score-label">Time to Aha</div>
+        <div class="score-stars">⭐⭐⭐⭐☆</div>
+        <div class="score-detail">12 min (install + test-drive)</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Market Size</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">$52.62B by 2030 <a href="https://www.index.dev/blog/ai-agents-statistics" target="_blank" class="source-link">[Index.dev]</a></div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Build Complexity</div>
+        <div class="score-stars">⭐⭐⭐☆☆</div>
+        <div class="score-detail">High but phased: MVP in 8 weeks</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Differentiation</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">Unique: agentic + OSS + self-hosted + MCP</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Monetization</div>
+        <div class="score-stars">⭐⭐⭐⭐☆</div>
+        <div class="score-detail">$0.49/resolution + seats (proven model)</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Defensibility</div>
+        <div class="score-stars">⭐⭐⭐⭐☆</div>
+        <div class="score-detail">OSS community + MCP ecosystem moat</div>
+      </div>
+    </div>
+
+    <div class="score-total">Total: 25/30</div>
+
+    <div class="card mt-3">
+      <h3 class="text-accent mb-1">📋 MVP Phasing Strategy</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--bg-card);">
+            <th style="text-align:left; padding:8px; color:var(--accent);">Phase</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Timeline</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Features</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Variant Origin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">Phase 1</td>
+            <td style="padding:8px;">Weeks 1-4</td>
+            <td style="padding:8px;">Chat widget + AI agent (RAG) + Knowledge Base + Self-hosted Docker</td>
+            <td style="padding:8px; color:var(--primary);">B (Dev-First)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">Phase 2</td>
+            <td style="padding:8px;">Weeks 5-8</td>
+            <td style="padding:8px;">MCP actions + Multi-agent + Shared Inbox + AI Copilot</td>
+            <td style="padding:8px; color:var(--secondary);">D (Agentic)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">Phase 3</td>
+            <td style="padding:8px;">Weeks 9-12</td>
+            <td style="padding:8px;">Voice AI + WhatsApp + Auto QA + Advanced analytics</td>
+            <td style="padding:8px; color:var(--secondary);">D (Agentic)</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;">Phase 4</td>
+            <td style="padding:8px;">Weeks 13-16</td>
+            <td style="padding:8px;">Conversational commerce + Proactive support + Enterprise (SSO, HIPAA)</td>
+            <td style="padding:8px; color:var(--secondary);">D (Expansion)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: SOURCES                                           -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-sources">
+    <h2 class="section-title">📎 All Sources — Clickable Links to Research</h2>
+
+    <div class="grid-2">
+      <a class="source-card" href="https://www.index.dev/blog/ai-agents-statistics" target="_blank">
+        <div class="pub">Index.dev</div>
+        <div class="fact">AI Agent market: $7.84B (2025) → $52.62B (2030), CAGR 46.3%</div>
+      </a>
+      <a class="source-card" href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">
+        <div class="pub">Gartner</div>
+        <div class="fact">80% autonomous resolution by 2029; multi-agent surge +1,445%</div>
+      </a>
+      <a class="source-card" href="https://www.cdata.com/blog/2026-year-enterprise-ready-mcp-adoption" target="_blank">
+        <div class="pub">CData</div>
+        <div class="fact">MCP: 97M+ monthly SDK downloads, enterprise-ready adoption 2026</div>
+      </a>
+      <a class="source-card" href="https://www.searchunify.com/resource-center/sudo-technical-blogs/model-context-protocol-the-future-of-ai-in-customer-support-2025/" target="_blank">
+        <div class="pub">SearchUnify</div>
+        <div class="fact">MCP for AI-Powered Customer Support — universal standard</div>
+      </a>
+      <a class="source-card" href="https://www.mordorintelligence.com/industry-reports/conversational-commerce-market" target="_blank">
+        <div class="pub">Mordor Intelligence</div>
+        <div class="fact">Conversational Commerce: $11.26B → $20.28B (2030), CAGR 12.47%</div>
+      </a>
+      <a class="source-card" href="https://www.bigcommerce.com/articles/ecommerce/conversational-commerce/" target="_blank">
+        <div class="pub">BigCommerce</div>
+        <div class="fact">66% of consumers ready to buy via messaging, 4x conversion</div>
+      </a>
+      <a class="source-card" href="https://bigsur.ai/blog/conversational-commerce-statistics" target="_blank">
+        <div class="pub">BigSur AI</div>
+        <div class="fact">Chatbot websites see +23% conversion boost</div>
+      </a>
+      <a class="source-card" href="https://www.retellai.com/blog/best-voice-ai-agent-platforms" target="_blank">
+        <div class="pub">Retell AI</div>
+        <div class="fact">Voice AI market: $47.5B by 2034, CAGR 22.7%</div>
+      </a>
+      <a class="source-card" href="https://secureprivacy.ai/blog/data-privacy-trends-2026" target="_blank">
+        <div class="pub">SecurePrivacy</div>
+        <div class="fact">GDPR fines: EUR 2.3B in 2025 (+38% YoY), EUR 6.7B+ total</div>
+      </a>
+      <a class="source-card" href="https://secureprivacy.ai/blog/privacy-laws-2026" target="_blank">
+        <div class="pub">SecurePrivacy</div>
+        <div class="fact">EU AI Act fully applicable August 2, 2026</div>
+      </a>
+      <a class="source-card" href="https://github.com/chatwoot/chatwoot" target="_blank">
+        <div class="pub">GitHub — Chatwoot</div>
+        <div class="fact">23.8K+ stars, YC-backed, leading open-source Intercom alternative</div>
+      </a>
+      <a class="source-card" href="https://www.assembled.com/blog/ai-copilots-customer-support" target="_blank">
+        <div class="pub">Assembled</div>
+        <div class="fact">90% of CX leaders report positive ROI from AI copilots</div>
+      </a>
+      <a class="source-card" href="https://www.observe.ai/post-interaction/auto-qa" target="_blank">
+        <div class="pub">Observe.AI</div>
+        <div class="fact">Auto QA scores 100% of interactions with evidence-based evaluation</div>
+      </a>
+      <a class="source-card" href="https://mobileecosystemforum.com/2025/12/17/whatsapp-opens-a-new-front-in-business-voice-with-calling-api/" target="_blank">
+        <div class="pub">MEF</div>
+        <div class="fact">WhatsApp Business Calling API (Dec 2025) — voice + video</div>
+      </a>
+      <a class="source-card" href="https://www.usepylon.com/blog/best-b2b-knowledge-base-software-ai-powered-platforms-2025" target="_blank">
+        <div class="pub">Pylon</div>
+        <div class="fact">92% would use KB; AI KB reduces tickets 30-50%</div>
+      </a>
+      <a class="source-card" href="https://www.searchunify.com/resource-center/blog/agentic-ai-in-customer-support-a-2026-data-driven-deep-dive" target="_blank">
+        <div class="pub">SearchUnify</div>
+        <div class="fact">56% of support will use agentic AI by mid-2026</div>
+      </a>
+      <a class="source-card" href="https://blog.octabyte.io/posts/open-source-alternatives-to-intercom/" target="_blank">
+        <div class="pub">OctaByte</div>
+        <div class="fact">OSS Intercom alternatives: cost, sovereignty, customization</div>
+      </a>
+      <a class="source-card" href="https://secureprivacy.ai/blog/zero-party-data-in-consent-management" target="_blank">
+        <div class="pub">SecurePrivacy</div>
+        <div class="fact">Zero-party data: consent-first privacy standard</div>
+      </a>
+      <a class="source-card" href="https://masterofcode.com/blog/conversational-ai-trends" target="_blank">
+        <div class="pub">MasterOfCode</div>
+        <div class="fact">Conversational AI: $12.24B (2024) → $61.69B (2032)</div>
+      </a>
+      <a class="source-card" href="https://medium.com/@devashish_m/predictive-analytics-for-proactive-customer-support-in-2025-54e432015db4" target="_blank">
+        <div class="pub">McKinsey / Medium</div>
+        <div class="fact">Predictive support: 20-30% efficiency gain, 87% welcome proactive outreach</div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let overlayVisible = true;
+
+  function showScreen(id, tabEl) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Show target
+    document.getElementById('screen-' + id).classList.add('active');
+    // Update tabs
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    // Update overlay
+    document.querySelectorAll('.cjm-overlay').forEach(o => o.classList.remove('show'));
+    const overlay = document.getElementById('overlay-' + id);
+    if (overlay && overlayVisible) overlay.classList.add('show');
+  }
+
+  function toggleOverlay() {
+    overlayVisible = !overlayVisible;
+    const btn = document.getElementById('overlayToggle');
+    btn.textContent = overlayVisible ? '🔍 CJM Overlay ON' : '🔍 CJM Overlay OFF';
+    btn.className = overlayVisible ? 'overlay-toggle' : 'overlay-toggle off';
+    document.querySelectorAll('.cjm-overlay').forEach(o => {
+      if (overlayVisible) {
+        // Only show the one matching active screen
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen) {
+          const screenId = activeScreen.id.replace('screen-', '');
+          const overlay = document.getElementById('overlay-' + screenId);
+          if (overlay) overlay.classList.add('show');
+        }
+      } else {
+        o.classList.remove('show');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
