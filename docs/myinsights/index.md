@@ -16,6 +16,14 @@
   High: /plan wrote flat files to docs/features/ which conflicts with /feature's per-feature directories.
   Fixed: /plan now writes to docs/plans/. No template exists for /plan — needs one.
 
+- [006: Audit results — /go, /next, /run, /plan, /feature-ent](006-command-audit-go-next-run-plan-feature-ent.md)
+  Mixed: /next 100%, /go 95%, /run 90% match. /plan has path conflict (FIXED). /feature-ent correctly absent.
+
+- [007: Audit results — /start, /test, /deploy, /review, /docs, /myinsights](007-command-audit-start-test-deploy-review-docs-myinsights.md)
+  Critical: /myinsights ~15% match (wrong storage path, missing INS-NNN system, no archive/status).
+  High: /start ~40% match (missing parallelism, flags, anti-hallucination).
+  Medium: /docs ~70% match (missing section templates). /test, /deploy, /review OK.
+
 ## Feature Implementation
 
 - [002: Phase 4 REVIEW catches real issues](002-feature-review-phase-value.md)
