@@ -2,27 +2,26 @@
 
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
 from src.core.database import get_db
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -60,16 +59,10 @@ async def get_current_tenant(
 
     from src.models.tenant import Tenant
 
-    result = await db.execute(select(Tenant).where(Tenant.api_key_hash == pwd_context.hash(api_key)))
-    tenant = result.scalar_one_or_none()
+    # Verify API key against all tenants (bcrypt hash comparison)
+    all_tenants = await db.execute(select(Tenant))
+    for t in all_tenants.scalars():
+        if verify_password(api_key, t.api_key_hash):
+            return t
 
-    if tenant is None:
-        # Try all tenants with verify (slower but handles bcrypt properly)
-        all_tenants = await db.execute(select(Tenant))
-        for t in all_tenants.scalars():
-            if pwd_context.verify(api_key, t.api_key_hash):
-                return t
-
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
-
-    return tenant
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
