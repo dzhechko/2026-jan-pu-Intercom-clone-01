@@ -1,13 +1,12 @@
 """Unit tests for ROI analytics schemas and calculations."""
 
-import pytest
 
+from src.api.routes.dashboard import SA_AVG_CONSULTATION_MINUTES, SA_HOURLY_RATE
 from src.api.schemas.dashboard import (
     ChannelStatsSchema,
     LeadBreakdownSchema,
     RoiMetricsSchema,
 )
-from src.api.routes.dashboard import SA_AVG_CONSULTATION_MINUTES, SA_HOURLY_RATE
 
 
 class TestRoiSchemas:

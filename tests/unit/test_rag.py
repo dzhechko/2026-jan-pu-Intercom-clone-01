@@ -1,10 +1,9 @@
 """Unit tests for RAG pipeline — embedding, search, RRF merge."""
 
-import pytest
 
-from src.rag.embedder import Embedder, EMBEDDING_DIMENSION
-from src.rag.search import RAGDocument, RAGSearch
+from src.rag.embedder import EMBEDDING_DIMENSION, Embedder
 from src.rag.indexer import DocumentIndexer
+from src.rag.search import RAGDocument, RAGSearch
 
 
 class TestEmbedder:

@@ -1,6 +1,5 @@
 """Unit tests for TCO calculation logic."""
 
-import pytest
 
 
 class TestTCOCalculation:

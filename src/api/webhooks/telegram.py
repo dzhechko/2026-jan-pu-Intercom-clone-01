@@ -1,6 +1,6 @@
 """Telegram bot webhook handler."""
 
-from fastapi import APIRouter, Header, HTTPException, Request, status, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

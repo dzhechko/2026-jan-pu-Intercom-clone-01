@@ -5,7 +5,6 @@ from functools import lru_cache
 
 import httpx
 
-from src.core.config import settings
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -47,7 +46,6 @@ class Embedder:
         """Deterministic pseudo-embedding for development/testing."""
         import struct
 
-        digest = hashlib.sha512(text.encode()).digest()
         # Expand hash to fill EMBEDDING_DIMENSION floats
         result = []
         for i in range(EMBEDDING_DIMENSION):

@@ -28,7 +28,7 @@ class Tenant(Base):
 
 
 # Avoid circular imports — these are resolved at runtime
-from src.models.conversation import Conversation  # noqa: E402, F401
-from src.models.lead import Lead  # noqa: E402, F401
 from src.models.agent_config import AgentConfig  # noqa: E402, F401
+from src.models.conversation import Conversation  # noqa: E402, F401
 from src.models.daily_metric import DailyMetric  # noqa: E402, F401
+from src.models.lead import Lead  # noqa: E402, F401

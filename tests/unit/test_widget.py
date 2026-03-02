@@ -8,8 +8,8 @@ Tests the widget-related backend functionality:
 
 import pytest
 
-from src.orchestrator.intent import detect_intent, select_agent_type
 from src.api.schemas.conversation import ConversationCreateSchema, MessageCreateSchema
+from src.orchestrator.intent import detect_intent, select_agent_type
 
 
 class TestWidgetConversationSchema:

@@ -1,6 +1,5 @@
 """Unit tests for orchestrator — intent detection and agent routing."""
 
-import pytest
 
 from src.orchestrator.intent import detect_intent, select_agent_type
 

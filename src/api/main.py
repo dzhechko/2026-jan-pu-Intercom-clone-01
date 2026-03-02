@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config import settings
-from src.core.logging import setup_logging, get_logger
+from src.core.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

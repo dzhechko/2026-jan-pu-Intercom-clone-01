@@ -31,6 +31,6 @@ class Conversation(Base):
     lead: Mapped["Lead | None"] = relationship(back_populates="conversation", uselist=False)
 
 
-from src.models.tenant import Tenant  # noqa: E402, F401
-from src.models.message import Message  # noqa: E402, F401
 from src.models.lead import Lead  # noqa: E402, F401
+from src.models.message import Message  # noqa: E402, F401
+from src.models.tenant import Tenant  # noqa: E402, F401

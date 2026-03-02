@@ -5,12 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.schemas.conversation import (
+    AssistantResponseSchema,
     ConversationCreateSchema,
     ConversationResponseSchema,
     MessageCreateSchema,
-    SendMessageResponseSchema,
-    AssistantResponseSchema,
     MessageResponseSchema,
+    SendMessageResponseSchema,
     SourceSchema,
 )
 from src.core.database import get_db
