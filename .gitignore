@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables (NEVER commit secrets)
+.env
+.env.local
+.env.staging
+.env.production
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.sql.bak
+*.dump
+
+# Node (admin dashboard)
+node_modules/
+admin/node_modules/
+admin/dist/
+admin/.env
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Nginx SSL certs (local dev)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
+# MinIO data (local)
+minio_data/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
