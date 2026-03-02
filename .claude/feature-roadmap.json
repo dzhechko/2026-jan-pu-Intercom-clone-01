@@ -114,8 +114,8 @@
       "id": "web-chat-widget",
       "name": "Web Chat Widget",
       "description": "Embeddable JavaScript widget for website integration",
-      "status": "planned",
-      "files": [],
+      "status": "done",
+      "files": ["widget/src/index.ts", "widget/src/api.ts", "widget/src/styles.ts", "widget/demo.html"],
       "depends_on": ["api-endpoints"],
       "sprint": "v1.0"
     },

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud.ru — Widget Demo</title>
+  <style>
+    body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px; }
+    h1 { color: #2563eb; }
+    p { color: #6b7280; line-height: 1.8; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    pre { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Cloud.ru AI Consultant Widget</h1>
+  <p>This page demonstrates the embeddable chat widget. Look for the blue chat bubble in the bottom-right corner.</p>
+  <p>The widget will show a proactive message after 5 seconds (demo mode).</p>
+
+  <h2>Integration Code</h2>
+  <pre><code>&lt;script&gt;
+  window.CHATWIDGET_CONFIG = {
+    apiKey: 'YOUR_API_KEY',
+    apiUrl: 'https://api.cloud-ru-ai.ru',
+  };
+&lt;/script&gt;
+&lt;script src="https://cdn.cloud-ru-ai.ru/widget.js" async defer&gt;&lt;/script&gt;</code></pre>
+
+  <h2>Pricing Page Simulation</h2>
+  <p>The proactive engagement message appears after spending time on a page. In production, this triggers on pricing/product pages after 60 seconds.</p>
+
+  <!-- Widget config for demo -->
+  <script>
+    window.CHATWIDGET_CONFIG = {
+      apiKey: 'demo-api-key',
+      apiUrl: window.location.origin,
+      greeting: 'Здравствуйте! Я AI-консультант Cloud.ru. Расскажу об облачных решениях, помогу рассчитать стоимость и спланировать миграцию. Чем могу помочь?',
+      proactive: {
+        enabled: true,
+        delayMs: 5000,
+        message: 'Нужна помощь с расчётом стоимости облачной инфраструктуры?',
+      },
+    };
+  </script>
+  <script src="dist/widget.js" defer></script>
+</body>
+</html>
