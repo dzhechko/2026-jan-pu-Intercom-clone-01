@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(default="change-me-to-at-least-32-characters-long-secret", min_length=32)
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
+    admin_email: str = "admin@cloud.ru"
+    admin_password_hash: str = ""  # bcrypt hash; if empty, uses default dev password
 
     # MinIO
     minio_endpoint: str = "localhost:9000"

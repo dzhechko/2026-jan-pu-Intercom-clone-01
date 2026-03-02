@@ -1,0 +1,62 @@
+export interface IMetrics {
+  total_consultations: number;
+  leads_generated: number;
+  avg_response_time_ms: number | null;
+  escalation_rate: number;
+  satisfaction_score: number | null;
+  conversion_rate: number;
+  top_intents: IIntentCount[];
+  daily_trend: IDailyTrend[];
+}
+
+export interface IIntentCount {
+  intent: string;
+  count: number;
+  percentage: number;
+}
+
+export interface IDailyTrend {
+  date: string;
+  consultations: number;
+  leads: number;
+}
+
+export interface IConversation {
+  id: string;
+  status: string;
+  channel: string;
+  channel_user_id: string | null;
+  context: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IMessage {
+  id: string;
+  role: string;
+  agent_type: string | null;
+  content: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ILead {
+  id: string;
+  conversation_id: string;
+  contact: {
+    name?: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+  };
+  qualification: string;
+  intent: string | null;
+  estimated_deal_value: number | null;
+  created_at: string;
+}
+
+export interface IUser {
+  tenant_id: string;
+  role: string;
+  email: string;
+}

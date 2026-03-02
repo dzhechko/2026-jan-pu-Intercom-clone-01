@@ -35,10 +35,12 @@ app.add_middleware(
 )
 
 # Routes
+from src.api.routes.auth import router as auth_router  # noqa: E402
 from src.api.routes.conversations import router as conversations_router  # noqa: E402
 from src.api.routes.dashboard import router as dashboard_router  # noqa: E402
 from src.api.webhooks.telegram import router as telegram_router  # noqa: E402
 
+app.include_router(auth_router)
 app.include_router(conversations_router)
 app.include_router(dashboard_router)
 app.include_router(telegram_router)
