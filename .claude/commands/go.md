@@ -39,21 +39,42 @@ CHECK: ls .claude/commands/feature-ent.md 2>/dev/null
   → missing: feature_ent_available = false
 ```
 
-Then evaluate the feature to determine the right pipeline:
+Then evaluate the feature to determine the right pipeline.
 
-| Signal | Score |
-|--------|-------|
-| Touches ≤3 files | -2 (simple) |
-| Touches 4-10 files | 0 (medium) |
-| Touches >10 files | +3 (complex) |
-| Has external API integration | +2 |
-| Requires new database entities | +2 |
-| Has cross-bounded-context dependencies | +3 |
-| Is a hotfix or minor improvement | -3 |
-| Has DDD docs in project (`docs/ddd/`) | +1 (toward /feature-ent) |
-| Has Gherkin scenarios for this feature | +1 |
-| Estimated implementation < 30 min | -2 |
-| Estimated implementation > 2 hours | +3 |
+**MANDATORY: You MUST output the scoring block below before proceeding to Step 3.**
+If you skip scoring, you are violating the pipeline contract.
+
+| Signal | Score | Notes |
+|--------|-------|-------|
+| Touches ≤3 files | -2 | Simple scope |
+| Touches 4-10 files | 0 | Medium scope |
+| Touches >10 files | +3 | Complex scope |
+| Has external API integration | +2 | HTTP clients, webhooks, SDKs |
+| Requires new database entities | +2 | New models, migrations |
+| Has cross-bounded-context dependencies | +3 | Multiple services affected |
+| Is a hotfix or config-only change | -3 | Only for truly trivial fixes |
+| Has system prompt > 30 lines | +1 | Nontrivial prompt design |
+| Requires routing/orchestrator changes | +1 | Touches agent routing logic |
+| Has DDD docs in project (`docs/ddd/`) | +1 | Toward /feature-ent |
+| Has Gherkin scenarios for this feature | +1 | Pre-existing test specs |
+| Estimated implementation < 30 min | -2 | Quick task |
+| Estimated implementation > 2 hours | +3 | Significant effort |
+
+> **Removed signal:** "Agent is config, not code" was previously -3 but this unfairly
+> penalized agent features. Creating agent prompts + integrating into routing IS
+> meaningful work that benefits from /feature lifecycle. See Insight 001.
+
+**MANDATORY scoring output block — you MUST print this before Step 3:**
+
+```
+COMPLEXITY SCORING: <feature-name>
+  Signal: <signal-1> = <score>
+  Signal: <signal-2> = <score>
+  ...
+  ─────────────────────────
+  Total score: <N>
+  Pipeline selected: /plan | /feature | /feature-ent
+```
 
 **Decision matrix:**
 
@@ -62,7 +83,14 @@ Then evaluate the feature to determine the right pipeline:
 | ≤ -2 | `/plan` | Simple task, lightweight plan is enough |
 | -1 to +4 | `/feature` | Standard feature, needs SPARC lifecycle |
 | ≥ +5 AND feature_ent_available | `/feature-ent` | Complex enterprise feature, full DDD/ADR/C4 lifecycle |
-| ≥ +5 AND NOT feature_ent_available | `/feature` | Complex feature but /feature-ent not in this project; use /feature with extra attention to architecture |
+| ≥ +5 AND NOT feature_ent_available | `/feature` | Complex but /feature-ent not available; use /feature with extra architecture attention |
+
+**Boundary examples (to avoid misclassification):**
+- Score **-3**: hotfix, config change → `/plan`
+- Score **-2**: single-file agent prompt, no routing change → `/plan`
+- Score **-1**: agent prompt + routing change → `/feature` (NOT /plan)
+- Score **0**: standard 4-5 file feature → `/feature`
+- Score **+5**: multi-service with DB + API + tests → `/feature-ent` (if available)
 
 > **Note:** `/feature-ent` is only available in projects where the toolkit was generated
 > from idea2prd-manual pipeline with DDD documentation. If `/feature-ent` is not available

@@ -38,7 +38,13 @@ IF $ARGUMENTS == "all":
 
 ## Step 2: Feature Implementation Loop
 
+**CRITICAL: Every feature MUST go through `/go` — never skip to direct implementation.**
+`/go` provides mandatory complexity scoring that determines the correct pipeline.
+Skipping `/go` caused 5 features to be built without validation or review (see Insight 001).
+
 ```
+pipeline_log = []   # Track pipeline decisions for final report
+
 LOOP:
     1. Run `/next` to get current sprint status and next feature
 
@@ -49,19 +55,30 @@ LOOP:
          - Get next feature that is NOT `done`
          - IF all features are `done` → EXIT LOOP (all complete)
 
-    3. Run `/go <feature-name>` to implement the feature
-       - /go automatically selects /plan, /feature, or /feature-ent
+    3. MANDATORY: Run `/go <feature-name>` to implement the feature
+       - /go MUST output its COMPLEXITY SCORING block (see /go Step 2)
+       - /go selects /plan, /feature, or /feature-ent based on score
        - /go handles commits and pushes
+       - IF /go's scoring block is missing → STOP and re-run /go
 
-    4. Verify implementation:
-       - Run project tests: ensure no regressions
+    4. Log pipeline decision:
+       ```
+       [N/total] <feature-name>
+         Score: <N> → Pipeline: /plan | /feature | /feature-ent
+         Status: done | blocked
+       ```
+       pipeline_log.append({feature, score, pipeline, status})
+
+    5. Verify implementation:
+       - Run project tests: `pytest tests/ -v`
        - IF tests fail → fix before continuing
+       - IF fix fails after 3 attempts → mark as `blocked`, push, continue
 
-    5. Update progress:
+    6. Update progress:
        - Feature marked as `done` in roadmap (handled by /go)
        - Log progress to stdout
 
-    6. CONTINUE LOOP
+    7. CONTINUE LOOP
 ```
 
 ## Step 3: Finalize
@@ -79,7 +96,7 @@ After loop completes:
    IF scope == "all":
        git tag v1.0.0 && git push origin v1.0.0
    ```
-5. Generate summary report:
+5. Generate summary report (using pipeline_log from Step 2):
 
 ```
 /run <scope> — COMPLETE
@@ -90,13 +107,18 @@ Summary:
    Total files: <count>
    Test results: <passed>/<total>
 
-Features completed:
-   <feature-1>  (via /plan)
-   <feature-2>  (via /feature)
-   <feature-3>  (via /feature-ent)
+Pipeline decisions (from /go scoring):
+   <feature-1>  score: <N> → /plan
+   <feature-2>  score: <N> → /feature
+   <feature-3>  score: <N> → /feature-ent
+   <feature-4>  score: <N> → /feature (BLOCKED after 3 attempts)
    ...
 
 Tagged: v0.1.0-mvp | v1.0.0
+
+IF any features blocked:
+   Blocked features: <count>
+   Review blocked features manually before next release.
 
 IF scope == "mvp" AND planned features remain:
    Remaining planned features: <count>

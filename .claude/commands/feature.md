@@ -48,7 +48,19 @@ Read the sparc-prd-mini skill from .claude/skills/sparc-prd-mini/SKILL.md
    - Pseudocode.md, Architecture.md, Refinement.md
    - Completion.md, Research_Findings.md, Final_Summary.md
    - Note: CLAUDE.md is NOT generated per-feature (project-level CLAUDE.md already exists)
-6. Git commit: `docs(feature): SPARC planning for <feature-name>`
+6. Create Phase Tracking section in `docs/features/<feature-name>/sparc/PRD.md`
+7. Git commit: `docs(feature): SPARC planning for <feature-name>`
+
+### Phase 1 Mandatory Artifacts (all must exist before proceeding):
+- [ ] `docs/features/<feature-name>/sparc/` directory created
+- [ ] PRD.md with user story and acceptance criteria in Gherkin format
+- [ ] Specification.md with data model and API contracts
+- [ ] Architecture.md with component references
+- [ ] Pseudocode.md with algorithms
+- [ ] Refinement.md with edge cases documented
+- [ ] Complexity score calculated (from `/go` or inline)
+- [ ] Files to create/modify listed in PRD.md
+- [ ] Phase Tracking section added to PRD.md (all 4 phases listed)
 
 **⏸️ Checkpoint:** Show SPARC summary, ask to proceed to validation.
 
@@ -80,6 +92,13 @@ Use swarm of agents to validate:
 Save validation report: `docs/features/<feature-name>/sparc/validation-report.md`
 Git commit: `docs(feature): validation complete for <feature-name>`
 
+### Phase 2 Mandatory Artifacts (all must exist before proceeding):
+- [ ] Each Gherkin scenario from Specification.md checked against implementation plan
+- [ ] Validation score output: `N/100` with per-validator breakdown
+- [ ] Any discrepancies listed and fixed in SPARC docs
+- [ ] `validation-report.md` saved in sparc/ directory
+- [ ] Phase Tracking updated: `[x] Phase 2: VALIDATE — score N/100 (details)`
+
 **⏸️ Checkpoint:** Show validation results, ask to proceed to implementation.
 
 ## Phase 3: IMPLEMENT (swarm + parallel tasks)
@@ -101,6 +120,13 @@ When SPARC plan is ready for implementation:
 - Reference SPARC docs, don't hallucinate code
 - Commit after each logical unit: `feat(<feature-name>): <what>`
 - Run tests in parallel with implementation
+
+### Phase 3 Mandatory Artifacts (all must exist before proceeding):
+- [ ] All planned files from Pseudocode.md created/modified
+- [ ] Tests written and passing
+- [ ] Test count reported: `N tests passing`
+- [ ] `ruff check` passes on all new/modified files
+- [ ] Phase Tracking updated: `[x] Phase 3: IMPLEMENT — N tests passing, lint clean`
 
 **⏸️ Checkpoint:** Show implementation summary, ask to proceed to review.
 
@@ -132,25 +158,52 @@ Process:
 Save review report: `docs/features/<feature-name>/review-report.md`
 Git commit: `docs(feature): review complete for <feature-name>`
 
+### Phase 4 Mandatory Artifacts (all must exist before marking feature as done):
+- [ ] `ruff check` passed on all modified files
+- [ ] Unused imports removed
+- [ ] No type/interface duplication
+- [ ] Security review (no hardcoded secrets, no SQL injection, proper input validation)
+- [ ] `review-report.md` saved with findings and fixes
+- [ ] Phase Tracking updated: `[x] Phase 4: REVIEW — N issues found, N fixed (details)`
+
+## Phase Tracking Template
+
+Add this section to `docs/features/<feature-name>/sparc/PRD.md` during Phase 1.
+Update it after each phase completes. This is the auditable record of the lifecycle.
+
+```markdown
+## Phase Tracking
+
+- [ ] Phase 1: PLAN — SPARC docs created, N files planned
+- [ ] Phase 2: VALIDATE — score N/100, N gaps fixed
+- [ ] Phase 3: IMPLEMENT — N tests passing, lint clean
+- [ ] Phase 4: REVIEW — N issues found, N fixed
+```
+
+**IMPORTANT:** If any phase's mandatory artifacts are missing, do NOT proceed to the next phase.
+Go back and produce the missing artifacts first. The purpose of checklists is to prevent
+the LLM from taking shortcuts (see Insight 003).
+
 ## Completion
 
-After all 4 phases:
+After all 4 phases and all checklists satisfied:
 ```
-✅ Feature: <feature-name>
+Feature: <feature-name>
 
-📁 docs/features/<feature-name>/
-├── sparc/                    # SPARC documentation
-│   ├── PRD.md
-│   ├── Specification.md
-│   ├── Architecture.md
-│   ├── Pseudocode.md
-│   ├── ...
-│   └── validation-report.md
-└── review-report.md          # Brutal honesty review
+docs/features/<feature-name>/
+  sparc/                    # SPARC documentation
+    PRD.md                  # with Phase Tracking section
+    Specification.md
+    Architecture.md
+    Pseudocode.md
+    ...
+    validation-report.md
+  review-report.md          # Brutal honesty review
 
-📊 Validation: score XX/100
-🔍 Review: X issues found → X fixed
-💾 Commits: N commits
+Validation: score XX/100
+Review: X issues found, X fixed
+Tests: N passing
+Commits: N commits
 
-💡 Consider running /myinsights if you encountered any tricky issues.
+Consider running /myinsights if you encountered any tricky issues.
 ```
