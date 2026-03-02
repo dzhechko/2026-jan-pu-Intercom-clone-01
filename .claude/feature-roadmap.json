@@ -78,8 +78,8 @@
       "id": "admin-dashboard-basic",
       "name": "Admin Dashboard (Basic)",
       "description": "React admin panel with conversation list, metrics overview, agent configs",
-      "status": "next",
-      "files": ["admin/"],
+      "status": "done",
+      "files": ["admin/src/", "admin/package.json", "src/api/routes/auth.py"],
       "depends_on": ["api-endpoints"],
       "sprint": "MVP"
     },
