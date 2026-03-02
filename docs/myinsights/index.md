@@ -8,6 +8,10 @@
 - [003: /feature needs mandatory artifact checklist](003-feature-lifecycle-artifact-checklist.md)
   High: Without mandatory outputs per phase, LLM skips validation and review entirely.
 
+- [004: /feature command doesn't match its own template](004-feature-command-vs-template-mismatch.md)
+  Critical: command was ad-hoc simplified instead of generated from feature-lifecycle.md template.
+  Rule was correct, command was not. Root cause: /replicate Phase 3 generation gap.
+
 ## Feature Implementation
 
 - [002: Phase 4 REVIEW catches real issues](002-feature-review-phase-value.md)
