@@ -62,6 +62,34 @@ Multi-agent AI platform for automating pre-sales cloud consulting. 6 specialized
 | `/test [scope]` | Generate and run tests |
 | `/deploy [env]` | Deploy to environment |
 | `/myinsights` | Capture development insights |
+| `/review [scope]` | Code review with multi-agent analysis |
+
+## Automation Commands
+
+| Command | Description |
+|---------|-------------|
+| `/go [feature]` | Auto-select pipeline (/plan, /feature) and implement |
+| `/run` or `/run mvp` | Bootstrap + implement all MVP features in a loop |
+| `/run all` | Bootstrap + implement ALL features |
+| `/docs` | Generate bilingual documentation (RU/EN) in README/ |
+| `/docs update` | Update existing documentation |
+| `/next` | Show next features from roadmap, sprint progress |
+| `/next [feature-id]` | Mark feature as done, show what's next |
+
+## Feature Development Lifecycle
+
+New features use the 4-phase lifecycle: `/feature [name]`
+1. **PLAN** — sparc-prd-mini (with Gate + external skills) → `docs/features/<n>/sparc/`
+2. **VALIDATE** — requirements-validator swarm → score >=70
+3. **IMPLEMENT** — parallel agents from validated docs
+4. **REVIEW** — brutal-honesty-review swarm → fix all criticals
+
+## Feature Roadmap
+
+Roadmap: [.claude/feature-roadmap.json](.claude/feature-roadmap.json) — single source of truth for feature status.
+Sprint progress and next steps are injected automatically at session start.
+Quick check: `/next` | Full overview: ask "what should I work on?"
+Mark done: `/next [feature-id]` | Update all: `/next update`
 
 ## Parallel Execution Strategy
 

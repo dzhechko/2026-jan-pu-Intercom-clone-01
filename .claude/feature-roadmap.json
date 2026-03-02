@@ -1,0 +1,141 @@
+{
+  "project": "AI-Consultant Cloud.ru",
+  "current_sprint": "MVP",
+  "features": [
+    {
+      "id": "rag-pipeline",
+      "name": "RAG Pipeline",
+      "description": "Hybrid search (vector + BM25 + RRF) over Cloud.ru documentation corpus",
+      "status": "done",
+      "files": ["src/rag/embedder.py", "src/rag/search.py", "src/rag/indexer.py"],
+      "depends_on": [],
+      "sprint": "MVP"
+    },
+    {
+      "id": "orchestrator",
+      "name": "Orchestrator",
+      "description": "Intent detection, agent routing, confidence scoring for multi-agent system",
+      "status": "done",
+      "files": ["src/orchestrator/intent.py", "src/orchestrator/router.py", "src/orchestrator/executor.py"],
+      "depends_on": [],
+      "sprint": "MVP"
+    },
+    {
+      "id": "architect-agent",
+      "name": "Architect Agent",
+      "description": "Cloud architecture recommendations based on user infrastructure description",
+      "status": "done",
+      "files": ["prompts/architect.md", "src/agents/"],
+      "depends_on": ["rag-pipeline", "orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "cost-calculator",
+      "name": "Cost Calculator Agent",
+      "description": "Real-time TCO comparison across Cloud.ru, Yandex Cloud, VK Cloud",
+      "status": "done",
+      "files": ["prompts/cost_calculator.md", "src/services/tco.py"],
+      "depends_on": ["rag-pipeline", "orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "compliance-agent",
+      "name": "Compliance Agent (152-FZ)",
+      "description": "152-FZ regulatory compliance advisory with FSTEC requirements mapping",
+      "status": "done",
+      "files": ["prompts/compliance.md"],
+      "depends_on": ["rag-pipeline", "orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "human-escalation",
+      "name": "Human Escalation Agent",
+      "description": "Automatic handoff when confidence < 0.6 with full context preservation",
+      "status": "done",
+      "files": ["prompts/escalation.md", "src/services/escalation.py"],
+      "depends_on": ["orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "telegram-bot",
+      "name": "Telegram Bot",
+      "description": "Telegram webhook integration with bot commands and conversation handling",
+      "status": "done",
+      "files": ["src/api/routes/telegram.py"],
+      "depends_on": ["orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "api-endpoints",
+      "name": "API Endpoints",
+      "description": "FastAPI REST API for conversations, messages, dashboard data",
+      "status": "done",
+      "files": ["src/api/routes/conversations.py", "src/api/routes/dashboard.py"],
+      "depends_on": ["orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "admin-dashboard-basic",
+      "name": "Admin Dashboard (Basic)",
+      "description": "React admin panel with conversation list, metrics overview, agent configs",
+      "status": "next",
+      "files": ["admin/"],
+      "depends_on": ["api-endpoints"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "lead-qualification",
+      "name": "Lead Qualification",
+      "description": "Automatic lead scoring from consultation conversations for CRM sync",
+      "status": "next",
+      "files": ["src/services/lead_qualification.py"],
+      "depends_on": ["orchestrator"],
+      "sprint": "MVP"
+    },
+    {
+      "id": "migration-agent",
+      "name": "Migration Agent",
+      "description": "Step-by-step migration planning from on-premise/other clouds to Cloud.ru",
+      "status": "planned",
+      "files": ["prompts/migration.md"],
+      "depends_on": ["architect-agent"],
+      "sprint": "v1.0"
+    },
+    {
+      "id": "ai-factory-agent",
+      "name": "AI Factory Agent (GPU)",
+      "description": "GPU infrastructure recommendations for ML/AI workloads on Cloud.ru",
+      "status": "planned",
+      "files": ["prompts/ai_factory.md"],
+      "depends_on": ["architect-agent"],
+      "sprint": "v1.0"
+    },
+    {
+      "id": "web-chat-widget",
+      "name": "Web Chat Widget",
+      "description": "Embeddable JavaScript widget for website integration",
+      "status": "planned",
+      "files": [],
+      "depends_on": ["api-endpoints"],
+      "sprint": "v1.0"
+    },
+    {
+      "id": "roi-analytics",
+      "name": "ROI Analytics Dashboard",
+      "description": "Consultation metrics, conversion tracking, ROI calculation for sales team",
+      "status": "planned",
+      "files": ["admin/"],
+      "depends_on": ["admin-dashboard-basic", "lead-qualification"],
+      "sprint": "v1.0"
+    },
+    {
+      "id": "bitrix24-crm",
+      "name": "Bitrix24 CRM Integration",
+      "description": "Automatic lead and deal creation in Bitrix24 from qualified consultations",
+      "status": "planned",
+      "files": [],
+      "depends_on": ["lead-qualification"],
+      "sprint": "v1.0"
+    }
+  ]
+}
