@@ -16,6 +16,10 @@
   High: /plan wrote flat files to docs/features/ which conflicts with /feature's per-feature directories.
   Fixed: /plan now writes to docs/plans/. No template exists for /plan — needs one.
 
+- [008: Pipeline discipline enforcement — /go, /run, /feature hardened](008-pipeline-discipline-enforcement.md)
+  Critical: Closes all 6 root causes from INS-001 + INS-003. Mandatory scoring block, pipeline_log,
+  25 artifact checklist items, Phase Tracking template. Pattern: checklists > prose for LLM enforcement.
+
 - [006: Audit results — /go, /next, /run, /plan, /feature-ent](006-command-audit-go-next-run-plan-feature-ent.md)
   Mixed: /next 100%, /go 95%, /run 90% match. /plan has path conflict (FIXED). /feature-ent correctly absent.
 
