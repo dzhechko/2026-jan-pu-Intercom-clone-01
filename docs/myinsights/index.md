@@ -20,6 +20,10 @@
   Critical: Closes all 6 root causes from INS-001 + INS-003. Mandatory scoring block, pipeline_log,
   25 artifact checklist items, Phase Tracking template. Pattern: checklists > prose for LLM enforcement.
 
+- [009: /go scoring audit — all 15 features retrospective](009-go-scoring-audit-all-features.md)
+  Medium: Validated updated scoring matrix on all features. 5 agent features changed from /plan to /feature
+  after removing unfair "agent is config" signal. Confirms Insight 001 cause #5 was real.
+
 - [006: Audit results — /go, /next, /run, /plan, /feature-ent](006-command-audit-go-next-run-plan-feature-ent.md)
   Mixed: /next 100%, /go 95%, /run 90% match. /plan has path conflict (FIXED). /feature-ent correctly absent.
 
