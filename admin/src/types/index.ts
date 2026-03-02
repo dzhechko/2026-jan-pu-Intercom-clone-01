@@ -60,3 +60,19 @@ export interface IUser {
   role: string;
   email: string;
 }
+
+export interface IRoiMetrics {
+  total_consultations: number;
+  total_leads: number;
+  qualified_leads: number;
+  pipeline_value: number;
+  avg_deal_value: number | null;
+  conversion_rate: number;
+  ai_handled: number;
+  escalated_to_sa: number;
+  sa_hours_saved: number;
+  sa_cost_saved: number;
+  lead_breakdown: { qualification: string; count: number; total_value: number }[];
+  channel_stats: { channel: string; consultations: number; leads: number; conversion_rate: number }[];
+  daily_trend: IDailyTrend[];
+}

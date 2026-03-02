@@ -52,4 +52,7 @@ export const api = {
     request<{ items: import("../types").ILead[]; total: number }>(
       `/dashboard/leads?page=${page}`,
     ),
+
+  getRoiMetrics: (period: string = "30d") =>
+    request<import("../types").IRoiMetrics>(`/dashboard/roi?period=${period}`),
 };
