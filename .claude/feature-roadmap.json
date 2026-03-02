@@ -87,8 +87,8 @@
       "id": "lead-qualification",
       "name": "Lead Qualification",
       "description": "Automatic lead scoring from consultation conversations for CRM sync",
-      "status": "next",
-      "files": ["src/services/lead_qualification.py"],
+      "status": "done",
+      "files": ["src/services/lead_qualification.py", "tests/unit/test_lead_qualification.py"],
       "depends_on": ["orchestrator"],
       "sprint": "MVP"
     },
