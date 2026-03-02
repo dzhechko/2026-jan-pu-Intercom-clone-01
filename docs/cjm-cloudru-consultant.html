@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CJM: AI-Консультант по облачным сервисам Cloud.ru Evolution</title>
+<style>
+  :root {
+    --primary: #4F46E5;
+    --secondary: #7C3AED;
+    --accent: #0EA5E9;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --cloudru: #FF6B00;
+    --bg: #0F172A;
+    --bg-light: #1E293B;
+    --bg-card: #334155;
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+  .header h1 { font-size: 1.5rem; }
+  .header p { color: var(--text-muted); font-size: 0.85rem; }
+  .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; background: var(--bg); padding: 0.5rem 0; }
+  .tab { padding: 8px 16px; background: var(--bg-light); color: var(--text-muted); border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .tab:hover { background: var(--bg-card); }
+  .tab.active { background: var(--primary); color: #fff; font-weight: 600; }
+  .overlay-toggle { padding: 6px 14px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+  .overlay-toggle.off { background: var(--bg-card); }
+  .cjm-overlay { background: rgba(79,70,229,0.15); border: 1px solid var(--primary); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.85rem; display: none; }
+  .cjm-overlay.show { display: block; }
+  .cjm-overlay .badge { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem; }
+  .cjm-overlay .question { color: var(--warning); margin-top: 0.5rem; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .card { background: var(--bg-light); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; }
+  .card-bordered { border-left: 4px solid var(--primary); }
+  .card-cloudru { border-left: 4px solid var(--cloudru); }
+  .source-badge { margin: 4px 0; padding: 4px 8px; background: var(--bg-light); border-radius: 4px; font-size: 0.75rem; border-left: 3px solid var(--accent); }
+  .source-badge a { color: var(--accent); text-decoration: none; }
+  .source-badge a:hover { text-decoration: underline; }
+  .source-badge .publisher { color: var(--text-muted); }
+  .source-link { color: var(--accent); font-size: 0.75rem; text-decoration: underline; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+  .grid-dashboard { display: grid; grid-template-columns: 250px 1fr 250px; gap: 1rem; }
+  @media (max-width: 900px) { .grid-2, .grid-3, .grid-4, .grid-dashboard { grid-template-columns: 1fr; } }
+  .headline { font-size: 2.25rem; font-weight: 800; text-align: center; background: linear-gradient(135deg, var(--cloudru), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .subheadline { font-size: 1.15rem; color: var(--text-muted); text-align: center; }
+  .section-title { font-size: 1.75rem; margin-bottom: 1.5rem; }
+  .btn { padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+  .btn-primary { background: var(--cloudru); color: #fff; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-outline { background: transparent; color: var(--cloudru); border: 2px solid var(--cloudru); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--bg-card); }
+  .btn-tg { background: #229ED9; color: #fff; }
+  .badge-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+  .badge-pill { padding: 4px 12px; background: var(--bg-card); border-radius: 999px; font-size: 0.85rem; color: var(--accent); }
+  pre { background: var(--bg); padding: 1rem; border-radius: 6px; font-size: 0.9rem; color: var(--success); overflow-x: auto; margin-top: 0.75rem; }
+  .metric-card { background: var(--bg-light); padding: 1rem; border-radius: 8px; text-align: center; }
+  .metric-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+  .text-success { color: var(--success); }
+  .text-danger { color: var(--danger); }
+  .text-accent { color: var(--accent); }
+  .text-muted { color: var(--text-muted); }
+  .text-warning { color: var(--warning); }
+  .text-cloudru { color: var(--cloudru); }
+  .fw-bold { font-weight: 700; }
+  .text-center { text-align: center; }
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+  .mt-3 { margin-top: 1.5rem; }
+  .mb-1 { margin-bottom: 0.5rem; }
+  .mb-2 { margin-bottom: 1rem; }
+  .agent-row { padding: 8px 0; border-bottom: 1px solid var(--bg-card); font-size: 0.85rem; }
+  .agent-role { color: var(--text-muted); font-size: 0.75rem; }
+  .sim-step { display: flex; gap: 0.75rem; padding: 6px 0; color: var(--success); font-size: 0.85rem; }
+  .sim-tool { color: var(--accent); font-size: 0.75rem; min-width: 130px; }
+  .sim-time { margin-left: auto; color: var(--text-muted); font-size: 0.75rem; }
+  .channel-item { display: flex; align-items: center; gap: 0.5rem; padding: 8px 12px; background: var(--bg-card); border-radius: 6px; font-size: 0.85rem; }
+  .channel-status { margin-left: auto; font-size: 0.75rem; }
+  .channel-status.auto { color: var(--success); }
+  .channel-status.connect { color: var(--text-muted); }
+  .plan-card { background: var(--bg-light); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--bg-card); position: relative; }
+  .plan-card.featured { border: 2px solid var(--cloudru); }
+  .plan-card .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--cloudru); color: #fff; padding: 2px 12px; border-radius: 999px; font-size: 0.75rem; }
+  .plan-name { color: var(--accent); font-size: 1.1rem; font-weight: 600; }
+  .plan-price { font-size: 2rem; font-weight: 800; }
+  .plan-period { color: var(--text-muted); }
+  .plan-tagline { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .plan-features { list-style: none; padding: 0; }
+  .plan-features li { padding: 4px 0; font-size: 0.85rem; }
+  .score-item { background: var(--bg-light); padding: 1rem; border-radius: 8px; }
+  .score-label { font-size: 0.85rem; color: var(--text-muted); }
+  .score-stars { font-size: 1.25rem; color: var(--cloudru); margin: 0.25rem 0; }
+  .score-detail { font-size: 0.8rem; }
+  .score-total { text-align: center; margin-top: 1.5rem; font-size: 2rem; font-weight: 800; color: var(--success); }
+  .source-card { display: block; padding: 8px 12px; background: var(--bg-light); border-radius: 6px; text-decoration: none; color: var(--text); font-size: 0.8rem; border-left: 3px solid var(--accent); transition: background 0.2s; }
+  .source-card:hover { background: var(--bg-card); }
+  .source-card .pub { color: var(--accent); font-weight: 600; }
+  .source-card .fact { color: var(--text-muted); margin-top: 2px; }
+  .chat-bubble { background: var(--bg-card); padding: 12px 16px; border-radius: 12px 12px 12px 2px; margin: 6px 0; max-width: 85%; font-size: 0.9rem; }
+  .chat-bubble.agent { background: rgba(14,165,233,0.15); border-radius: 12px 12px 2px 12px; margin-left: auto; border: 1px solid rgba(14,165,233,0.3); }
+  .chat-bubble.client { background: var(--bg-card); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>🏢 CJM: AI-Консультант Cloud.ru Evolution</h1>
+      <p>Сценарий: AI-агент для pre-sales консультаций по облачным сервисам</p>
+    </div>
+    <button class="overlay-toggle" id="overlayToggle" onclick="toggleOverlay()">🔍 CJM Overlay ON</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showScreen('landing', this)">🏠 Landing</button>
+    <button class="tab" onclick="showScreen('onboarding', this)">⚙️ Интеграция</button>
+    <button class="tab" onclick="showScreen('aha', this)">⚡ Aha Moment</button>
+    <button class="tab" onclick="showScreen('dashboard', this)">🎛️ Консоль агентов</button>
+    <button class="tab" onclick="showScreen('dialog', this)">💬 Пример диалога</button>
+    <button class="tab" onclick="showScreen('paywall', this)">💰 Монетизация</button>
+    <button class="tab" onclick="showScreen('scoring', this)">🏆 Scoring</button>
+    <button class="tab" onclick="showScreen('sources', this)">📎 Источники</button>
+  </div>
+
+  <!-- OVERLAYS -->
+  <div class="cjm-overlay show" id="overlay-landing">
+    <span class="badge">A — Acquisition</span> <strong>Привлечение</strong> <span class="text-muted">Метрика: Посетитель cloud.ru → начал консультацию</span>
+    <p class="question">🧪 Заменяет ли AI-консультант форму "Оставить заявку"? Готов ли клиент говорить с ботом вместо менеджера?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-onboarding">
+    <span class="badge">Setup</span> <strong>Интеграция на стороне Cloud.ru</strong> <span class="text-muted">Метрика: Время от решения до рабочего прототипа</span>
+    <p class="question">🧪 Сколько данных нужно загрузить, чтобы AI-консультант давал точные рекомендации?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-aha">
+    <span class="badge">A — Activation</span> <strong>Aha Moment</strong> <span class="text-muted">Метрика: Первая автоматическая архитектурная рекомендация с TCO</span>
+    <p class="question">🧪 Доверяет ли CTO рекомендации AI-агента настолько, чтобы отправить в тендерный комитет?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-dashboard">
+    <span class="badge">R — Retention</span> <strong>Управление</strong> <span class="text-muted">Метрика: Кол-во квалифицированных лидов/нед, конверсия в POC</span>
+    <p class="question">🧪 Видит ли Sales-команда Cloud.ru достаточно контекста для продолжения разговора?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-dialog">
+    <span class="badge">Core Loop</span> <strong>Консультация</strong> <span class="text-muted">Метрика: AI resolution rate, среднее время до TCO-отчёта</span>
+    <p class="question">🧪 Насколько точны рекомендации AI по архитектуре и ценам? Доверяет ли клиент?</p>
+  </div>
+  <div class="cjm-overlay" id="overlay-paywall">
+    <span class="badge">R — Revenue</span> <strong>Монетизация</strong> <span class="text-muted">Метрика: Стоимость квалифицированного лида, ROI платформы</span>
+    <p class="question">🧪 Окупает ли AI-консультант себя через снижение нагрузки на pre-sales команду?</p>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: LANDING                                           -->
+  <!-- ======================================================== -->
+  <div class="screen active" id="screen-landing">
+    <div class="text-center mb-2">
+      <h2 class="headline">AI-консультант по облаку.<br>Архитектура за 5 минут, не за 5 недель.</h2>
+      <p class="subheadline mt-1">Мультиагентная платформа для pre-sales консультаций Cloud.ru Evolution.<br>TCO-калькулятор, миграционный план, проверка 152-ФЗ — в одном диалоге.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; margin-top:1.5rem; flex-wrap:wrap;">
+        <button class="btn btn-primary">Попробовать на cloud.ru</button>
+        <button class="btn btn-tg">💬 Бот в Telegram</button>
+        <button class="btn btn-outline">Демо для Sales-команды</button>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div class="grid-2 mt-3">
+      <div class="card" style="border: 1px solid rgba(239,68,68,0.2);">
+        <h3 class="text-danger mb-1">❌ Сейчас: ручной pre-sales</h3>
+        <p class="text-muted">1. Клиент оставляет заявку на cloud.ru</p>
+        <p class="text-muted">2. Менеджер перезванивает через 1-3 дня</p>
+        <p class="text-muted">3. Встреча с Solutions Architect (ещё неделя)</p>
+        <p class="text-muted">4. TCO-расчёт вручную (ещё 3-5 дней)</p>
+        <p class="text-muted">5. КП готово через 2-5 недель</p>
+        <p class="text-danger fw-bold mt-2">Итого: 2-5 недель до КП. 40% лидов уходят к конкурентам.</p>
+      </div>
+      <div class="card" style="border: 1px solid rgba(16,185,129,0.2);">
+        <h3 class="text-success mb-1">✅ С AI-консультантом</h3>
+        <p class="text-success">1. Клиент открывает чат / Telegram-бот</p>
+        <p class="text-success">2. AI: "Расскажите о вашей инфраструктуре"</p>
+        <p class="text-success">3. AI Agent "Архитектор" → рекомендация на Evolution</p>
+        <p class="text-success">4. AI Agent "Калькулятор" → TCO за 30 сек</p>
+        <p class="text-success">5. AI Agent "Compliance" → проверка 152-ФЗ</p>
+        <p class="text-success fw-bold mt-2">Итого: 5 минут до архитектуры + TCO. Лид горячий. 🔥</p>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge-pill">Cloud.ru Evolution</span>
+      <span class="badge-pill">Multi-Agent AI</span>
+      <span class="badge-pill">TCO Калькулятор</span>
+      <span class="badge-pill">152-ФЗ / ФСТЭК</span>
+      <span class="badge-pill">Telegram-native</span>
+      <span class="badge-pill">MCP Protocol</span>
+    </div>
+
+    <div class="mt-3">
+      <div class="source-badge">
+        <a href="https://cloud.ru/products/cloud-professional-services" target="_blank">📎 Cloud.ru Professional Services — текущая модель консалтинга (полностью ручная)</a>
+        <span class="publisher"> — cloud.ru</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.cnews.ru/reviews/oblachnye_servisy_2025" target="_blank">📎 Рынок облачных сервисов России: 416.5 млрд ₽, рост +29.2% YoY</a>
+        <span class="publisher"> — CNews</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">📎 80% обращений будут решаться автономно AI к 2029</a>
+        <span class="publisher"> — Gartner</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: ONBOARDING (Integration at Cloud.ru side)         -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-onboarding">
+    <h2 class="section-title">⚙️ Интеграция AI-консультанта в Cloud.ru</h2>
+    <p class="text-muted mb-2">Что нужно подключить, чтобы AI-агент давал точные рекомендации</p>
+
+    <div class="card card-cloudru">
+      <h3 class="text-cloudru">Step 1: База знаний Cloud.ru Evolution (~2 дня)</h3>
+      <p class="mt-1">Загрузить в RAG-систему:</p>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
+        <span class="badge-pill">Документация Evolution (100+ сервисов)</span>
+        <span class="badge-pill">Тарифы и калькулятор цен</span>
+        <span class="badge-pill">Case studies клиентов</span>
+        <span class="badge-pill">FAQ pre-sales</span>
+        <span class="badge-pill">Сертификаты (ФСТЭК, 152-ФЗ)</span>
+      </div>
+      <div class="source-badge mt-2">
+        <a href="https://cloud.ru/docs/evolution/overview/index" target="_blank">📎 Cloud.ru Evolution — документация по всем сервисам</a>
+        <span class="publisher"> — cloud.ru</span>
+      </div>
+    </div>
+
+    <div class="card card-bordered">
+      <h3 class="text-accent">Step 2: MCP-серверы для действий (~3 дня)</h3>
+      <div style="margin-top:0.75rem;">
+        <div class="agent-row">💰 <strong>Pricing API</strong> — расчёт стоимости VM, Storage, K8s, GPU в реальном времени</div>
+        <div class="agent-row">🏗️ <strong>Architecture Templates</strong> — шаблоны архитектур (web-app, ML pipeline, 1С в облаке, КИИ)</div>
+        <div class="agent-row">📋 <strong>Compliance Checker</strong> — матрица 152-ФЗ, ГИС, КИИ, ФСТЭК требований</div>
+        <div class="agent-row">📊 <strong>Migration Estimator</strong> — оценка сложности, wave planning, timeline</div>
+        <div class="agent-row">📧 <strong>CRM (Bitrix24/amoCRM)</strong> — автосоздание лида с контекстом диалога</div>
+        <div class="agent-row">📅 <strong>Календарь SA</strong> — букинг встречи с Solutions Architect</div>
+      </div>
+      <div class="source-badge mt-2">
+        <a href="https://www.cdata.com/blog/2026-year-enterprise-ready-mcp-adoption" target="_blank">📎 MCP: 97M+ SDK downloads/мес — стандарт AI-интеграции</a>
+        <span class="publisher"> — CData</span>
+      </div>
+    </div>
+
+    <div class="card card-bordered">
+      <h3 class="text-accent">Step 3: Каналы (~1 день)</h3>
+      <div class="grid-3 mt-1">
+        <div class="channel-item">💬 Виджет на cloud.ru <span class="channel-status auto">✅ приоритет</span></div>
+        <div class="channel-item">✈️ Telegram Bot <span class="channel-status auto">✅ приоритет</span></div>
+        <div class="channel-item">📧 Email <span class="channel-status connect">подключить</span></div>
+        <div class="channel-item">📱 WhatsApp <span class="channel-status connect">опционально</span></div>
+        <div class="channel-item">🎙️ Voice AI <span class="channel-status connect">фаза 2</span></div>
+        <div class="channel-item">💼 Slack (B2B) <span class="channel-status connect">фаза 2</span></div>
+      </div>
+    </div>
+
+    <div class="card card-bordered">
+      <h3 class="text-accent">Step 4: Обучение + тестирование (~2 дня)</h3>
+      <p class="mt-1">Симуляции 50 типовых сценариев: миграция с AWS, выбор между IaaS и K8s, расчёт GPU для ML, compliance КИИ</p>
+      <p class="text-success mt-1 fw-bold">Итого: ~1 неделя от начала интеграции до production</p>
+    </div>
+
+    <div class="source-badge mt-2">
+      <a href="https://www.searchunify.com/resource-center/blog/agentic-ai-in-customer-support-a-2026-data-driven-deep-dive" target="_blank">📎 56% обращений в поддержку будут обрабатываться agentic AI к mid-2026</a>
+      <span class="publisher"> — SearchUnify</span>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: AHA MOMENT                                        -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-aha">
+    <div class="text-center">
+      <div style="font-size:4rem; margin-bottom:1rem;">⚡</div>
+      <h2 class="headline">Клиент получил архитектуру + TCO за 5 минут.<br>Без единого звонка менеджеру.</h2>
+      <p class="text-muted mt-2" style="max-width:650px; margin:1rem auto;">
+        CTO заходит на cloud.ru, описывает свою инфраструктуру (200 серверов VMware, 152-ФЗ обязателен) →
+        AI-агент за 5 минут выдаёт архитектуру на Evolution, TCO-сравнение с конкурентами,
+        план миграции в 4 волны и чеклист compliance. С кнопкой "Запустить бесплатный POC".
+      </p>
+      <div class="card mt-3" style="max-width:500px; margin:1.5rem auto; border:2px solid var(--success); text-align:center;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--success);">5 минут вместо 5 недель. 6 агентов. Полный отчёт.</div>
+        <div class="text-muted mt-1">KPI: Первый TCO-отчёт сгенерирован автоматически</div>
+      </div>
+      <div class="grid-3 mt-3" style="max-width:700px; margin:1.5rem auto;">
+        <div class="metric-card"><div class="metric-value">5 мин</div><div class="metric-label">Время до TCO</div></div>
+        <div class="metric-card"><div class="metric-value">-24%</div><div class="metric-label">Экономия vs on-prem</div></div>
+        <div class="metric-card"><div class="metric-value">152-ФЗ ✅</div><div class="metric-label">Compliance проверен</div></div>
+      </div>
+      <div class="card mt-2" style="max-width:550px; margin:1rem auto; background:var(--bg-card);">
+        <p class="text-warning" style="font-size:0.9rem;">🧪 CustDev: Доверяет ли CTO автоматической рекомендации по архитектуре облака достаточно, чтобы начать POC?</p>
+      </div>
+      <div class="mt-2">
+        <div class="source-badge">
+          <a href="https://habr.com/ru/articles/1003854/" target="_blank">📎 61% миграций в облако превышают дедлайны, сложные кейсы — 24-72 часа простоя</a>
+          <span class="publisher"> — Habr</span>
+        </div>
+        <div class="source-badge">
+          <a href="https://www.anti-malware.ru/analytics/Technology_Analysis/Migration-to-the-Russian-cloud" target="_blank">📎 Миграция в российское облако: кейсы и проблемы</a>
+          <span class="publisher"> — Anti-Malware</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: DASHBOARD                                         -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-dashboard">
+    <h2 class="section-title">🎛️ Консоль AI-агентов Cloud.ru</h2>
+
+    <div class="grid-dashboard">
+      <!-- Multi-Agent Hub -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">🤖 Агенты-консультанты</h3>
+        <div class="agent-row"><div class="fw-bold">🏗️ Архитектор</div><div class="agent-role">Рекомендует решение на Evolution (Compute, K8s, DB, S3)</div></div>
+        <div class="agent-row"><div class="fw-bold">💰 Калькулятор</div><div class="agent-role">TCO в реальном времени, сравнение с Yandex/VK/on-prem</div></div>
+        <div class="agent-row"><div class="fw-bold">📋 Compliance</div><div class="agent-role">152-ФЗ, ФСТЭК, ГИС, КИИ — чеклисты и маршруты</div></div>
+        <div class="agent-row"><div class="fw-bold">🚚 Миграция</div><div class="agent-role">Wave planning, оценка сроков, runbook</div></div>
+        <div class="agent-row"><div class="fw-bold">🤖 AI Factory</div><div class="agent-role">Подбор GPU, ML Inference, RAG pipeline</div></div>
+        <div class="agent-row"><div class="fw-bold">👤 Эскалация</div><div class="agent-role">Передача на Solutions Architect с полным контекстом</div></div>
+        <div class="source-badge mt-2">
+          <a href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank">📎 Multi-agent: +1,445% запросов за год</a>
+          <span class="publisher"> — Gartner</span>
+        </div>
+      </div>
+
+      <!-- Live Conversation -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">💬 Текущая консультация</h3>
+        <div style="background:var(--bg); padding:0.75rem; border-radius:6px;">
+          <p class="text-muted"><em>CTO FinTech-стартапа: "Нужно развернуть ML-pipeline для скоринга, 152-ФЗ обязателен, бюджет 500К/мес"</em></p>
+          <p class="text-accent mt-1" style="font-size:0.85rem;">🤖 AI Factory Agent:</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ Рекомендация: Evolution ML Inference + Managed PostgreSQL</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ GPU: 2× A100 (Shared GPU — экономия 35%)</p>
+          <p class="text-accent mt-1" style="font-size:0.85rem;">💰 Cost Agent:</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ TCO: 420К ₽/мес (в рамках бюджета, запас 16%)</p>
+          <p class="text-accent mt-1" style="font-size:0.85rem;">📋 Compliance Agent:</p>
+          <p class="text-success" style="font-size:0.85rem;">✓ 152-ФЗ: ✅ | КИИ: ⚠️ требуется категорирование</p>
+        </div>
+      </div>
+
+      <!-- Sales Pipeline Panel -->
+      <div class="card">
+        <h3 class="text-accent mb-1" style="font-size:0.9rem;">📊 Pipeline для Sales</h3>
+        <div class="agent-row"><div class="fw-bold">Новых лидов сегодня</div><div class="text-cloudru">12</div></div>
+        <div class="agent-row"><div class="fw-bold">Квалифицированных</div><div class="text-success">8 (67%)</div></div>
+        <div class="agent-row"><div class="fw-bold">Запросили POC</div><div class="text-accent">3</div></div>
+        <div class="agent-row"><div class="fw-bold">Эскалация на SA</div><div class="text-warning">2</div></div>
+        <div class="agent-row"><div class="fw-bold">Средний чек лида</div><div>780К ₽/мес</div></div>
+        <div class="source-badge mt-2">
+          <a href="https://www.assembled.com/blog/ai-copilots-customer-support" target="_blank">📎 90% CX лидеров: положительный ROI от AI copilots</a>
+          <span class="publisher"> — Assembled</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid-4 mt-2">
+      <div class="metric-card"><div class="metric-value">847</div><div class="metric-label">Консультаций/мес</div></div>
+      <div class="metric-card"><div class="metric-value">73%</div><div class="metric-label">AI resolved (без SA)</div></div>
+      <div class="metric-card"><div class="metric-value">4.2 мин</div><div class="metric-label">Среднее до TCO</div></div>
+      <div class="metric-card"><div class="metric-value">12%</div><div class="metric-label">Конверсия в POC</div></div>
+      <div class="metric-card"><div class="metric-value">₽62М</div><div class="metric-label">Pipeline/мес</div></div>
+      <div class="metric-card"><div class="metric-value">3.2x</div><div class="metric-label">ROI платформы</div></div>
+      <div class="metric-card"><div class="metric-value">-65%</div><div class="metric-label">Нагрузка на SA</div></div>
+      <div class="metric-card"><div class="metric-value">NPS 78</div><div class="metric-label">Удовлетворённость</div></div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: DIALOG EXAMPLE                                    -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-dialog">
+    <h2 class="section-title">💬 Пример консультации: миграция с VMware</h2>
+    <p class="text-muted mb-2">Реальный сценарий диалога AI-консультанта с CTO</p>
+
+    <div class="card" style="max-width:750px; margin:0 auto;">
+      <div class="chat-bubble client">
+        👤 <strong>CTO:</strong> У нас 200 серверов на VMware в собственном ЦОД. Нужно мигрировать в российское облако. Бюджет ~5М ₽/мес. 152-ФЗ обязателен, есть обработка ПДн.
+      </div>
+
+      <div class="chat-bubble agent">
+        🤖 <strong>AI Triage:</strong> Понял, передаю вашу задачу специализированным агентам. Работают параллельно — результат через ~30 секунд.
+      </div>
+
+      <div class="chat-bubble agent" style="border-color: var(--cloudru);">
+        🏗️ <strong>Agent Архитектор:</strong><br>
+        Анализирую... 200 серверов ≈ <strong>120 VM</strong> после консолидации<br><br>
+        <strong>Рекомендация на Cloud.ru Evolution:</strong><br>
+        • <strong>Compute:</strong> 80× vCPU c8m16 + 40× c16m32 (production)<br>
+        • <strong>Storage:</strong> Evolution Disk SSD — 50TB + Object Storage — 200TB<br>
+        • <strong>Database:</strong> Managed PostgreSQL (3 реплики, HA)<br>
+        • <strong>Network:</strong> VPC + Load Balancer + Curator Anti-DDoS<br>
+        • <strong>Containers:</strong> Managed Kubernetes (для stateless сервисов)
+      </div>
+
+      <div class="chat-bubble agent" style="border-color: var(--success);">
+        💰 <strong>Agent Калькулятор:</strong><br><br>
+        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid var(--bg-card);"><th style="text-align:left;padding:4px;">Вариант</th><th style="text-align:right;padding:4px;">₽/мес</th><th style="text-align:right;padding:4px;">vs текущий</th></tr>
+          <tr style="border-bottom:1px solid var(--bg-card);"><td style="padding:4px;">On-prem (текущий)</td><td style="text-align:right;padding:4px;">5 000 000</td><td style="text-align:right;padding:4px;">—</td></tr>
+          <tr style="border-bottom:1px solid var(--bg-card);color:var(--success);"><td style="padding:4px;"><strong>Cloud.ru Evolution</strong></td><td style="text-align:right;padding:4px;"><strong>3 820 000</strong></td><td style="text-align:right;padding:4px;"><strong>-24% ✅</strong></td></tr>
+          <tr style="border-bottom:1px solid var(--bg-card);"><td style="padding:4px;">Yandex Cloud</td><td style="text-align:right;padding:4px;">4 150 000</td><td style="text-align:right;padding:4px;">-17%</td></tr>
+          <tr><td style="padding:4px;">VK Cloud</td><td style="text-align:right;padding:4px;">4 380 000</td><td style="text-align:right;padding:4px;">-12%</td></tr>
+        </table>
+        <br>Экономия с Cloud.ru: <strong>₽14.2М/год</strong>
+      </div>
+
+      <div class="chat-bubble agent" style="border-color: var(--warning);">
+        📋 <strong>Agent Compliance:</strong><br>
+        ✅ <strong>152-ФЗ:</strong> Cloud.ru сертифицирован (УЗ-1 — УЗ-4)<br>
+        ✅ <strong>ФСТЭК:</strong> Evolution Stack имеет сертификат<br>
+        ⚠️ <strong>КИИ:</strong> Требуется категорирование объектов КИИ (если есть)<br>
+        ✅ <strong>Рекомендация:</strong> Начать с POC в изолированном VPC
+      </div>
+
+      <div class="chat-bubble agent" style="border-color: var(--secondary);">
+        🚚 <strong>Agent Миграция:</strong><br><br>
+        <strong>План миграции (4 волны, 12 недель):</strong><br>
+        Wave 1 (нед. 1-2): Dev/test среды — 30 VM, низкий риск<br>
+        Wave 2 (нед. 3-5): Stateless сервисы — 40 VM<br>
+        Wave 3 (нед. 6-9): Databases — PostgreSQL + миграция данных<br>
+        Wave 4 (нед. 10-12): Production + cutover<br><br>
+        <strong>Estimated downtime:</strong> 2-4 часа (wave 4, планово)<br>
+        <strong>Rollback plan:</strong> DNS failback на on-prem в течение 15 мин
+      </div>
+
+      <div class="chat-bubble agent">
+        🤖 <strong>AI:</strong> Готов полный отчёт. Что дальше?<br><br>
+        <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;">🚀 Запустить бесплатный POC</button>
+        <button class="btn btn-outline" style="padding:8px 16px; font-size:0.85rem; margin-left:8px;">📄 Скачать PDF-отчёт</button>
+        <button class="btn btn-ghost" style="padding:8px 16px; font-size:0.85rem; margin-left:8px;">📅 Встреча с архитектором</button>
+      </div>
+
+      <div class="chat-bubble client">
+        👤 <strong>CTO:</strong> Впечатляет. Давайте POC на Wave 1 — dev/test среды.
+      </div>
+
+      <div class="chat-bubble agent">
+        🤖 <strong>AI:</strong> Отлично! Создал заявку на POC. Solutions Architect Алексей свяжется с вами в течение 2 часов для настройки тестового окружения. Отправил детали на вашу почту.
+        <br><br>
+        <span class="text-muted" style="font-size:0.75rem;">🔗 Лид #4821 создан в CRM | Контекст: 200 VM, VMware→Evolution, 5М бюджет, 152-ФЗ, POC wave 1</span>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <div class="source-badge">
+        <a href="https://cloud.ru/blog/cloud-ru-lider-rossiyskogo-rynka-2024-goda" target="_blank">📎 Cloud.ru — лидер российского рынка IaaS+PaaS 2024 (32.5% доля)</a>
+        <span class="publisher"> — cloud.ru</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://www.interfax.ru/business/1039559" target="_blank">📎 Выручка Cloud.ru: 49.4 млрд ₽ (+84% YoY), H1 2025: 36.8 млрд ₽ (+73%)</a>
+        <span class="publisher"> — Interfax</span>
+      </div>
+      <div class="source-badge">
+        <a href="https://cloud.ru/blog/sertifikat-fstek-dlya-cloud-ru-evolution-stack" target="_blank">📎 Evolution Stack — первая модульная облачная платформа с сертификатом ФСТЭК</a>
+        <span class="publisher"> — cloud.ru</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: PAYWALL / MONETIZATION                            -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-paywall">
+    <h2 class="section-title text-center">Модель монетизации</h2>
+    <p class="text-muted text-center mb-2">Cloud.ru — заказчик. Платформа монетизируется через лиды и ROI.</p>
+
+    <div class="grid-3">
+      <div class="plan-card">
+        <div class="plan-name">🧪 Pilot</div>
+        <div class="plan-price mt-1">₽0</div>
+        <div class="plan-period">3 месяца</div>
+        <p class="plan-tagline">Proof of concept на одном сегменте</p>
+        <ul class="plan-features">
+          <li>✓ 1 канал (виджет cloud.ru)</li>
+          <li>✓ 3 агента (Архитектор, Калькулятор, Compliance)</li>
+          <li>✓ 200 консультаций/мес</li>
+          <li>✓ Базовая аналитика</li>
+          <li>✓ Интеграция с CRM</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%; margin-top:1rem; padding:10px;">Начать Pilot</button>
+      </div>
+
+      <div class="plan-card featured">
+        <div class="popular-badge">ОСНОВНОЙ</div>
+        <div class="plan-name">🚀 Production</div>
+        <div class="plan-price mt-1">₽500К</div>
+        <div class="plan-period">/месяц</div>
+        <p class="plan-tagline">Полная платформа для pre-sales команды</p>
+        <ul class="plan-features">
+          <li>✓ Все каналы (виджет, Telegram, email)</li>
+          <li>✓ 6 агентов (все специализации)</li>
+          <li>✓ Безлимит консультаций</li>
+          <li>✓ PDF-отчёты, TCO-сравнения</li>
+          <li>✓ CRM + календарь SA</li>
+          <li>✓ Аналитика pipeline</li>
+          <li>✓ Voice AI (входящие звонки)</li>
+          <li>✓ Приоритетная поддержка</li>
+        </ul>
+        <div style="margin-top:1rem; padding:8px; background:var(--bg-card); border-radius:4px; font-size:0.75rem; color:var(--success);">
+          💡 ROI: При конверсии 12% в POC и среднем чеке 780К/мес → окупается с 1-го квалифицированного лида
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:1rem; padding:10px;">Подключить</button>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-name">🏢 Enterprise</div>
+        <div class="plan-price mt-1">Custom</div>
+        <div class="plan-period">по договору</div>
+        <p class="plan-tagline">White-label для группы компаний</p>
+        <ul class="plan-features">
+          <li>✓ Всё из Production</li>
+          <li>✓ Развёртывание on-premise</li>
+          <li>✓ Custom AI model training</li>
+          <li>✓ Мультибрендинг</li>
+          <li>✓ API для партнёров</li>
+          <li>✓ SLA 99.9%</li>
+          <li>✓ Dedicated support</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%; margin-top:1rem; padding:10px;">Связаться</button>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <h3 class="text-accent mb-1">📊 Экономическое обоснование для Cloud.ru</h3>
+      <div class="grid-2">
+        <div>
+          <h4 class="text-muted mb-1">Затраты (текущие, ручной pre-sales)</h4>
+          <p>• 5 Solutions Architects × ₽350К/мес = <strong>₽1.75М/мес</strong></p>
+          <p>• 3 Account Managers × ₽250К/мес = <strong>₽750К/мес</strong></p>
+          <p>• Скорость: 2-5 недель до КП</p>
+          <p>• Потеря лидов: ~40%</p>
+          <p class="text-danger fw-bold mt-1">Итого: ₽2.5М/мес + потерянные лиды</p>
+        </div>
+        <div>
+          <h4 class="text-muted mb-1">С AI-консультантом</h4>
+          <p>• Платформа: <strong>₽500К/мес</strong></p>
+          <p>• SA: те же 5, но на сложных кейсах (-65% рутины)</p>
+          <p>• Скорость: 5 мин до TCO</p>
+          <p>• Потеря лидов: ~10% (AI обрабатывает 24/7)</p>
+          <p class="text-success fw-bold mt-1">Экономия: ₽2М/мес + 3x больше квалифицированных лидов</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: SCORING                                           -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-scoring">
+    <h2 class="section-title">🏆 Scoring: AI-Консультант Cloud.ru</h2>
+    <div class="grid-3">
+      <div class="score-item">
+        <div class="score-label">Ценность для Cloud.ru</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">Прямое увеличение pipeline + снижение нагрузки SA</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Размер рынка</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">416.5 млрд ₽ — облачный рынок РФ, +30% YoY <a href="https://www.cnews.ru/reviews/oblachnye_servisy_2025" target="_blank" class="source-link">[CNews]</a></div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Сложность разработки</div>
+        <div class="score-stars">⭐⭐⭐☆☆</div>
+        <div class="score-detail">Средне: RAG + MCP + multi-agent, MVP 6-8 недель</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Дифференциация</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">Ни один RU cloud provider не имеет AI pre-sales консультанта</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">ROI для заказчика</div>
+        <div class="score-stars">⭐⭐⭐⭐⭐</div>
+        <div class="score-detail">3.2x ROI: ₽500К/мес платформа → ₽62М pipeline/мес</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Time to Market</div>
+        <div class="score-stars">⭐⭐⭐⭐☆</div>
+        <div class="score-detail">Pilot: 1 неделя интеграции, Production: 6-8 недель</div>
+      </div>
+    </div>
+    <div class="score-total">Total: 27/30</div>
+
+    <div class="card mt-3">
+      <h3 class="text-accent mb-1">📋 План внедрения</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--bg-card);">
+            <th style="text-align:left; padding:8px; color:var(--accent);">Фаза</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Срок</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Что делаем</th>
+            <th style="text-align:left; padding:8px; color:var(--accent);">Результат</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">Pilot</td>
+            <td style="padding:8px;">Неделя 1-2</td>
+            <td style="padding:8px;">RAG из документации + 3 агента + виджет на cloud.ru</td>
+            <td style="padding:8px;">Первые AI-консультации, метрики качества</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">MVP</td>
+            <td style="padding:8px;">Неделя 3-6</td>
+            <td style="padding:8px;">+ Telegram бот, CRM интеграция, TCO PDF-отчёты</td>
+            <td style="padding:8px;">Полный pre-sales flow, pipeline метрики</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--bg-card);">
+            <td style="padding:8px;">Scale</td>
+            <td style="padding:8px;">Неделя 7-12</td>
+            <td style="padding:8px;">+ Voice AI, Auto-POC provisioning, партнёрский API</td>
+            <td style="padding:8px;">Масштаб на все сегменты, Enterprise-ready</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;">Optimize</td>
+            <td style="padding:8px;">Месяц 4+</td>
+            <td style="padding:8px;">A/B тесты, fine-tuning, вертикальные сценарии</td>
+            <td style="padding:8px;">Conversion rate optimization, cross-sell</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SCREEN: SOURCES                                           -->
+  <!-- ======================================================== -->
+  <div class="screen" id="screen-sources">
+    <h2 class="section-title">📎 Все источники</h2>
+    <h3 class="text-accent mb-1">Cloud.ru / Облачный рынок РФ</h3>
+    <div class="grid-2 mb-2">
+      <a class="source-card" href="https://cloud.ru/about" target="_blank"><div class="pub">Cloud.ru</div><div class="fact">О компании: 9 ЦОД, 1000+ сотрудников, 100+ сервисов</div></a>
+      <a class="source-card" href="https://www.interfax.ru/business/1039559" target="_blank"><div class="pub">Interfax</div><div class="fact">Выручка 49.4 млрд ₽ (+84%), H1 2025: 36.8 млрд ₽ (+73%)</div></a>
+      <a class="source-card" href="https://cloud.ru/blog/cloud-ru-lider-rossiyskogo-rynka-2024-goda" target="_blank"><div class="pub">Cloud.ru Blog</div><div class="fact">Лидер российского IaaS+PaaS рынка 2024 (32.5% доля)</div></a>
+      <a class="source-card" href="https://www.cnews.ru/reviews/oblachnye_servisy_2025" target="_blank"><div class="pub">CNews</div><div class="fact">Рынок облачных сервисов РФ: 416.5 млрд ₽, +29.2% YoY</div></a>
+      <a class="source-card" href="https://www.cnews.ru/news/top/2026-02-10_rynok_oblachnyh_servisov" target="_blank"><div class="pub">CNews</div><div class="fact">Прогноз рынка: 1.2 трлн ₽ к 2030</div></a>
+      <a class="source-card" href="https://cloud.ru/products/cloud-professional-services" target="_blank"><div class="pub">Cloud.ru</div><div class="fact">Professional Services — текущая ручная модель консалтинга</div></a>
+      <a class="source-card" href="https://cloud.ru/docs/evolution/overview/index" target="_blank"><div class="pub">Cloud.ru Docs</div><div class="fact">Evolution Platform — документация по 100+ сервисам</div></a>
+      <a class="source-card" href="https://cloud.ru/products/evolution-ai-factory" target="_blank"><div class="pub">Cloud.ru</div><div class="fact">Evolution AI Factory — ML Inference, RAG, Agents, Fine-tuning</div></a>
+      <a class="source-card" href="https://cloud.ru/blog/sertifikat-fstek-dlya-cloud-ru-evolution-stack" target="_blank"><div class="pub">Cloud.ru Blog</div><div class="fact">Evolution Stack — первый сертификат ФСТЭК для модульной облачной платформы</div></a>
+      <a class="source-card" href="https://www.anti-malware.ru/analytics/Technology_Analysis/Russian-cloud-market-prospects" target="_blank"><div class="pub">Anti-Malware</div><div class="fact">Российский облачный рынок 2025: структура, тренды, прогноз</div></a>
+    </div>
+
+    <h3 class="text-accent mb-1">Миграция и проблемы</h3>
+    <div class="grid-2 mb-2">
+      <a class="source-card" href="https://habr.com/ru/articles/1003854/" target="_blank"><div class="pub">Habr</div><div class="fact">"Кровавая миграция": 61% превышают дедлайны, 24-72ч простоя</div></a>
+      <a class="source-card" href="https://www.anti-malware.ru/analytics/Technology_Analysis/Migration-to-the-Russian-cloud" target="_blank"><div class="pub">Anti-Malware</div><div class="fact">Миграция в российское облако: кейсы и проблемы</div></a>
+      <a class="source-card" href="https://selectel.ru/about/newsroom/news/selectel-i-iks-consulting-proveli-issledovanie-potrebnostei-rossiiskikh-kompanii-v-oblachnykh-uslugakh-migraciya-v-oblako-analiz-tekushei-situacii-v-rossii/" target="_blank"><div class="pub">Selectel + iKS</div><div class="fact">Исследование потребностей: миграция в облако, текущая ситуация в РФ</div></a>
+      <a class="source-card" href="https://www.plainconcepts.com/pain-points-cloud-adoption/" target="_blank"><div class="pub">Plain Concepts</div><div class="fact">Pain Points: 49% компаний тратят впустую 25%+ облачного бюджета</div></a>
+    </div>
+
+    <h3 class="text-accent mb-1">AI / Agentic AI / Тренды</h3>
+    <div class="grid-2 mb-2">
+      <a class="source-card" href="https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290" target="_blank"><div class="pub">Gartner</div><div class="fact">80% автономных резолюций к 2029, multi-agent +1,445%</div></a>
+      <a class="source-card" href="https://www.index.dev/blog/ai-agents-statistics" target="_blank"><div class="pub">Index.dev</div><div class="fact">AI Agent рынок: $7.84B → $52.62B к 2030, CAGR 46.3%</div></a>
+      <a class="source-card" href="https://www.cdata.com/blog/2026-year-enterprise-ready-mcp-adoption" target="_blank"><div class="pub">CData</div><div class="fact">MCP: 97M+ SDK downloads/мес, enterprise-ready 2026</div></a>
+      <a class="source-card" href="https://www.searchunify.com/resource-center/blog/agentic-ai-in-customer-support-a-2026-data-driven-deep-dive" target="_blank"><div class="pub">SearchUnify</div><div class="fact">56% обращений — agentic AI к mid-2026</div></a>
+      <a class="source-card" href="https://www.assembled.com/blog/ai-copilots-customer-support" target="_blank"><div class="pub">Assembled</div><div class="fact">90% CX лидеров: положительный ROI от AI copilots</div></a>
+      <a class="source-card" href="https://www.searchunify.com/resource-center/sudo-technical-blogs/model-context-protocol-the-future-of-ai-in-customer-support-2025/" target="_blank"><div class="pub">SearchUnify</div><div class="fact">MCP для AI в customer support — будущее стандарта</div></a>
+    </div>
+
+    <h3 class="text-accent mb-1">Конкуренты и рынок</h3>
+    <div class="grid-2">
+      <a class="source-card" href="https://cloud.ru/blog/leadership-paas-iaas-2024" target="_blank"><div class="pub">Cloud.ru Blog</div><div class="fact">Лидерство в PaaS и IaaS — рыночные доли 2024</div></a>
+      <a class="source-card" href="https://globalcio.ru/news/46161/" target="_blank"><div class="pub">GlobalCIO</div><div class="fact">Cloud.ru — крупнейший по доле рынка</div></a>
+      <a class="source-card" href="https://www.comnews.ru/content/243065/2026-01-12/2026-w03/1008/rynok-oblachnykh-servisov-2026-g-prodolzhit-rost" target="_blank"><div class="pub">ComNews</div><div class="fact">Рынок облачных сервисов продолжит рост в 2026</div></a>
+      <a class="source-card" href="https://inferitcloud.ru/importozameshhenie-v-oblakah-rossijskij-rynok-posle-uhoda-zapadnyh-provajderov/" target="_blank"><div class="pub">InferitCloud</div><div class="fact">Импортозамещение в облаках: рынок после ухода западных провайдеров</div></a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let overlayVisible = true;
+  function showScreen(id, tabEl) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    document.querySelectorAll('.cjm-overlay').forEach(o => o.classList.remove('show'));
+    const overlay = document.getElementById('overlay-' + id);
+    if (overlay && overlayVisible) overlay.classList.add('show');
+  }
+  function toggleOverlay() {
+    overlayVisible = !overlayVisible;
+    const btn = document.getElementById('overlayToggle');
+    btn.textContent = overlayVisible ? '🔍 CJM Overlay ON' : '🔍 CJM Overlay OFF';
+    btn.className = overlayVisible ? 'overlay-toggle' : 'overlay-toggle off';
+    document.querySelectorAll('.cjm-overlay').forEach(o => {
+      if (overlayVisible) {
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen) {
+          const screenId = activeScreen.id.replace('screen-', '');
+          const overlay = document.getElementById('overlay-' + screenId);
+          if (overlay) overlay.classList.add('show');
+        }
+      } else { o.classList.remove('show'); }
+    });
+  }
+</script>
+
+</body>
+</html>
