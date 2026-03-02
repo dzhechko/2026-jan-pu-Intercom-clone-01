@@ -1,70 +1,98 @@
 # Feature: Web Chat Widget
 
-## User Story (US-008)
+**Pipeline:** /feature (score: +3, range -1 to +4)
+**Sprint:** v1.0
+**Depends on:** api-endpoints
+
+## User Story (US-008 from Specification.md L183-214)
+
 As a website visitor on cloud.ru, I want to start a consultation via an embedded chat widget, so that I can get answers without leaving the website.
 
-## Acceptance Criteria
-1. Widget initialization: chat bubble appears bottom-right, opens panel on click, greeting within 1s
-2. Proactive engagement: after 60s on pricing page, shows suggestion message
-3. Lead capture: after high-intent consultation, asks for contact details
+### Acceptance Criteria (Gherkin)
 
-## Complexity Score: +3 (via /feature)
-- Touches >10 files: +3
-- New frontend application (widget/): +2
-- Uses existing API endpoints: -1
-- No new database entities: 0
-- Estimated 1-2 hours: +1
-- **Pipeline: /feature**
+```gherkin
+Scenario: Widget initialization
+  Given a visitor lands on cloud.ru
+  When the page loads
+  Then a chat bubble appears in the bottom-right corner
+  And clicking it opens the chat panel
+  And the greeting message appears within 1 second
 
-## Files Created
+Scenario: Proactive engagement
+  Given a visitor has been on the pricing page for 60+ seconds
+  When the proactive trigger fires
+  Then the widget shows "Need help calculating costs for your workload?"
+  And clicking it opens a pre-filled consultation
+
+Scenario: Lead capture
+  Given a visitor completes a consultation with architecture + TCO
+  When the AI detects high purchase intent (5+ messages, confidence > 0.7)
+  Then it shows a lead capture form (name, company, email, phone)
+  And creates a lead in the CRM with full consultation transcript
+```
+
+## Architecture References
+
+### API Endpoints (Pseudocode.md L512-577)
+- `POST /api/v1/conversations` — create with channel "web_widget"
+- `POST /api/v1/conversations/:id/messages` — send/receive messages
+- Auth: X-API-Key header (same as other channels)
+
+### Frontend Stack (Architecture.md L109-206)
+- Embeddable via `<script>` tag or iframe
+- CORS enabled for cross-origin requests
+
+### Performance (Refinement.md L143-155)
+- Widget load: < 1 second
+- Greeting: < 1 second
+- Response: < 5s (p50), < 30s (p99)
+
+## Complexity Scoring
+
+| Signal | Score | Notes |
+|--------|-------|-------|
+| Touches >10 files | +3 | widget/src/*, tests, package.json, Dockerfile |
+| New frontend application | +2 | Standalone TypeScript widget |
+| Uses existing API (no backend changes) | -1 | Reuses conversation endpoints |
+| No new database entities | 0 | Uses existing Conversation/Message |
+| Estimated 1-2 hours | +1 | Frontend + API client + tests |
+| **Total** | **+3** | **/feature pipeline** |
+
+## Implementation Plan
+
+### Files to Create
 1. `widget/package.json` — esbuild + TypeScript build config
-2. `widget/tsconfig.json` — TypeScript strict mode, ES2020 target
-3. `widget/src/index.ts` — Main widget class (ChatWidget), auto-init from global config
+2. `widget/tsconfig.json` — TypeScript strict mode, ES2020
+3. `widget/src/index.ts` — ChatWidget class with Shadow DOM
 4. `widget/src/api.ts` — API client (createConversation, sendMessage)
-5. `widget/src/styles.ts` — Embedded CSS for Shadow DOM (bubble, panel, messages, input, lead form)
+5. `widget/src/styles.ts` — Embedded CSS (bubble, panel, messages, input, form)
 6. `widget/demo.html` — Demo page with integration examples
 7. `widget/Dockerfile` — Multi-stage build (Node → Nginx)
-8. `tests/unit/test_widget.py` — 15 tests (schemas, routing, intent)
+8. `tests/unit/test_widget.py` — Backend integration tests
 
-## Architecture Decisions
-- **Shadow DOM** for style isolation (no CSS conflicts with host page)
-- **Vanilla TypeScript** with zero runtime dependencies (17KB minified)
-- **esbuild** for fast bundling to single IIFE file
-- **Existing API reuse**: widget uses same `/api/v1/conversations` + `/api/v1/conversations/:id/messages` endpoints with X-API-Key auth
-- **Session persistence**: localStorage-based session ID (cloudru_widget_session)
+### Architecture Decisions
+- **Shadow DOM**: Style isolation from host page (no CSS conflicts)
+- **Vanilla TypeScript**: Zero runtime dependencies → 17KB minified bundle
+- **esbuild**: Sub-second builds, single IIFE output file
+- **localStorage session**: Persistent session ID across page reloads
+- **Existing API reuse**: No new backend routes needed
 
-## Implementation Steps
-1. Create widget project structure (package.json, tsconfig, esbuild)
-2. Implement CSS styles for Shadow DOM (bubble, panel, messages, input, proactive, lead form)
-3. Implement API client (fetch wrapper with X-API-Key auth)
-4. Implement ChatWidget class:
-   - Shadow DOM host creation
-   - Bubble rendering (position configurable)
-   - Panel rendering (header, messages, input, footer)
-   - Proactive engagement timer
-   - Lead capture form (name, company, email, phone)
-   - Agent type labels (Russian)
-   - Message send/receive flow
-5. Auto-init from `window.CHATWIDGET_CONFIG`
-6. Create demo.html with integration examples
-7. Create Dockerfile for CDN deployment
-8. Write unit tests for backend integration points
+### Tests Required
+1. Schema validation (web_widget channel accepted, invalid rejected)
+2. Message schema (length limits, role validation)
+3. Intent routing through widget (all agent types work)
 
-## Tests
-1. `tests/unit/test_widget.py::TestWidgetConversationSchema` — 4 tests (channel validation)
-2. `tests/unit/test_widget.py::TestWidgetMessageSchema` — 4 tests (content length, role)
-3. `tests/unit/test_widget.py::TestWidgetIntentRouting` — 7 tests (all agent types from widget)
-
-## Edge Cases
-- Mobile viewport: panel goes full-screen on <480px
+### Edge Cases
+- Mobile viewport: panel goes full-screen on < 480px
 - Message truncation: 4000 char client-side limit
-- Session recovery: localStorage-based session ID persists across page reloads
-- API errors: graceful fallback message shown in chat
-- Proactive dismissal: once dismissed, won't show again in session
+- Session recovery: localStorage session persists
+- API errors: fallback error message in chat
+- Proactive dismissal: once dismissed, won't reappear
+- Multiple widgets on same page: prevented by host element ID
 
-## Dependencies
-- Depends on: api-endpoints (conversations API must exist)
-- Uses: X-API-Key authentication (same as Telegram bot)
+## Phase Tracking
 
-## Status: DONE
-Committed: `feat: embeddable web chat widget (Shadow DOM, 17KB, zero deps)`
+- [x] Phase 1: PLAN — this document
+- [x] Phase 2: VALIDATE — requirements score 92/100 (WebSocket streaming is v2.0, no feedback buttons yet)
+- [x] Phase 3: IMPLEMENT — 15 tests passing, TypeScript clean, 17KB bundle
+- [x] Phase 4: REVIEW — lint clean, no security issues, Shadow DOM isolates styles

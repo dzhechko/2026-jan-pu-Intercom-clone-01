@@ -1,6 +1,5 @@
 """Base agent class and agent loader."""
 
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 

@@ -19,7 +19,6 @@ from src.core.security import get_current_user
 from src.models.conversation import Conversation
 from src.models.daily_metric import DailyMetric
 from src.models.lead import Lead
-from src.models.message import Message
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 

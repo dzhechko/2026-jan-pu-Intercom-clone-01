@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.logging import get_logger
 from src.models.conversation import Conversation
 from src.models.lead import Lead
-from src.models.message import Message
 
 logger = get_logger(__name__)
 
@@ -189,8 +188,8 @@ def extract_architecture_summary(messages: list[dict]) -> str | None:
     ]
     if not architect_responses:
         return None
-    # Take the last (most complete) architect response, truncate to 500 chars
-    summary = architect_responses[-1][:500]
+    # Take the last (most complete) architect response, truncate to 1000 chars
+    summary = architect_responses[-1][:1000]
     return summary if summary else None
 
 

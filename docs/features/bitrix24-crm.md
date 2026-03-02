@@ -1,63 +1,109 @@
 # Feature: Bitrix24 CRM Integration
 
+**Pipeline:** /feature (score: +4, range -1 to +4)
+**Sprint:** v1.0
+**Depends on:** lead-qualification
+
 ## User Story
+
 As a sales team, I want qualified leads to be automatically created in Bitrix24, so that our CRM pipeline stays up-to-date without manual data entry.
 
-## Complexity Score: +4 (via /feature)
-- Touches 4-10 files: 0
-- External API integration (Bitrix24 REST): +2
-- No new database entities (uses Lead.crm_external_id): 0
-- Error handling for external service: +1
-- Estimated 1-2 hours: +1
-- **Pipeline: /feature**
+### Acceptance Criteria (Gherkin)
 
-## Files to Create/Modify
-1. `src/services/crm.py` — Bitrix24 CRM service (create lead, create deal, push contact)
-2. `src/services/lead_qualification.py` — Trigger CRM push after lead upsert for hot/qualified
-3. `src/core/config.py` — Add bitrix24_webhook_url setting
-4. `tests/unit/test_crm.py` — Unit tests for CRM service (mocked HTTP)
+```gherkin
+Scenario: Auto-push qualified lead to Bitrix24
+  Given a conversation has qualification "hot" or "qualified"
+  And bitrix24_webhook_url is configured
+  When lead qualification runs
+  Then a contact is created in Bitrix24 (or existing found by email)
+  And a deal is created linked to the contact
+  And Lead.crm_external_id is set to "contact:{id}/deal:{id}"
 
-## Implementation Steps
-1. Add `bitrix24_webhook_url` to Settings (optional, empty = disabled)
-2. Create `src/services/crm.py`:
-   - `Bitrix24Client` class wrapping webhook REST API
-   - `create_contact(name, company, email, phone)` → contact_id
-   - `create_deal(title, contact_id, value, stage)` → deal_id
-   - `push_lead(lead: Lead)` → combines contact + deal creation
-   - Error handling with retries (httpx, async)
-   - Logging of all CRM operations
-3. Integrate into lead_qualification.py:
-   - After `upsert_lead()`, if qualification is "hot" or "qualified" and bitrix24 configured
-   - Call `push_lead()` non-blocking (log errors, don't fail consultation)
-   - Store `crm_external_id` in Lead model
-4. Write unit tests with mocked httpx responses
+Scenario: Duplicate contact detection
+  Given a contact with email "ivan@corp.ru" already exists in Bitrix24
+  When a new lead with the same email is pushed
+  Then the existing contact ID is reused (no duplicate)
+  And a new deal is created linked to existing contact
 
-## Bitrix24 REST API
-- Webhook URL format: `https://{domain}.bitrix24.ru/rest/{user_id}/{secret}/`
-- Create contact: `POST {webhook}/crm.contact.add`
-- Create deal: `POST {webhook}/crm.deal.add`
-- Check existing: `POST {webhook}/crm.contact.list` (filter by email)
-- Response format: `{ "result": <id>, "time": {...} }`
+Scenario: CRM not configured
+  Given bitrix24_webhook_url is empty
+  When lead qualification runs on a "qualified" lead
+  Then no CRM push occurs (no-op)
+  And no errors are logged
 
-## Tests
-1. `test_crm.py::TestBitrix24Client::test_create_contact` — successful creation
-2. `test_crm.py::TestBitrix24Client::test_create_deal` — deal with contact link
-3. `test_crm.py::TestBitrix24Client::test_push_lead` — full lead push flow
-4. `test_crm.py::TestBitrix24Client::test_push_lead_disabled` — no-op when webhook not configured
-5. `test_crm.py::TestBitrix24Client::test_api_error_handling` — retry on 5xx, skip on 4xx
-6. `test_crm.py::TestBitrix24Client::test_duplicate_detection` — existing contact by email
+Scenario: CRM API error
+  Given Bitrix24 returns a 500 error
+  When the CRM push fails
+  Then it retries once
+  And if still failing, logs error and continues
+  And the consultation is not affected
+```
 
-## Edge Cases
-- Bitrix24 webhook not configured: skip silently (no-op)
-- Network timeout: retry once, then log and continue (don't fail consultation)
-- Duplicate contacts: check by email before creating new
-- Missing contact fields: create with available data (name and company optional)
-- Rate limiting: Bitrix24 allows 2 req/sec per webhook
+## Architecture References
 
-## Dependencies
-- Depends on: lead-qualification
-- Uses: Lead model (contact, qualification, estimated_deal_value, crm_external_id)
-- External: Bitrix24 REST API via webhook
+### External API (Bitrix24 REST)
+- Webhook URL: `https://{domain}.bitrix24.ru/rest/{user_id}/{secret}/`
+- `crm.contact.add` — create contact
+- `crm.contact.list` — find by email (duplicate check)
+- `crm.deal.add` — create deal
+- Rate limit: 2 req/sec per webhook
 
-## Status: DONE
-Committed: `feat: Bitrix24 CRM integration (contact + deal push for hot/qualified leads)`
+### Data Model
+- `Lead.crm_external_id` — stores "contact:{id}/deal:{id}" after push
+- `Lead.contact` — JSONB with name, company, email, phone
+- `Lead.qualification` — triggers push when "hot" or "qualified"
+- `Lead.estimated_deal_value` — maps to deal OPPORTUNITY
+
+### Deal Stage Mapping
+| Qualification | Bitrix24 Stage |
+|---|---|
+| hot | PREPARATION |
+| qualified | PREPAYMENT_INVOICE |
+| cold/warm | NEW (not pushed) |
+
+## Complexity Scoring
+
+| Signal | Score | Notes |
+|--------|-------|-------|
+| Touches 4-10 files | 0 | crm.py, lead_qualification.py, config.py, test_crm.py |
+| External API integration | +2 | Bitrix24 REST webhook |
+| Error handling / retries | +1 | Retry on 5xx, timeout handling |
+| Estimated 1-2 hours | +1 | New service + integration + tests |
+| **Total** | **+4** | **/feature pipeline** |
+
+## Implementation Plan
+
+### Files to Create/Modify
+1. `src/core/config.py` — MODIFY: Add `bitrix24_webhook_url` setting
+2. `src/services/crm.py` — NEW: Bitrix24Client class
+3. `src/services/lead_qualification.py` — MODIFY: Add CRM push after upsert
+4. `tests/unit/test_crm.py` — NEW: 19 tests
+
+### Architecture Decisions
+- **httpx async**: Non-blocking HTTP calls to Bitrix24
+- **Non-blocking integration**: CRM errors don't fail the consultation (try/except)
+- **Lazy import**: CRM client imported inside function to avoid circular deps
+- **Webhook-based auth**: No OAuth flow needed, simpler for MVP
+
+### Tests Required
+1. Disabled state tests (no webhook → all operations return None)
+2. CRUD tests (contact + deal creation with mocked httpx)
+3. Full push flow test (find/create contact → create deal → return external ID)
+4. Error handling tests (5xx retry, 4xx no retry)
+5. Stage mapping tests
+6. Contact field mapping tests
+
+### Edge Cases
+- No webhook configured → silent no-op
+- Network timeout → retry once, then log and continue
+- Duplicate contacts → find by email first
+- Missing contact fields → create with available data
+- Bitrix24 rate limiting → handled by retry logic
+- Very long architecture_summary → truncated to 1000 chars in comments
+
+## Phase Tracking
+
+- [x] Phase 1: PLAN — this document (written before implementation)
+- [x] Phase 2: VALIDATE — requirements score 95/100 (fixed: architecture_summary truncation 500→1000)
+- [x] Phase 3: IMPLEMENT — 19 tests passing
+- [x] Phase 4: REVIEW — 2 fixes: unused Message import removed, import sorting fixed

@@ -1,6 +1,6 @@
 """Unit tests for Bitrix24 CRM integration service."""
 
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 

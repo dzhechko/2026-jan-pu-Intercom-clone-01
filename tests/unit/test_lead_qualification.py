@@ -180,11 +180,11 @@ class TestExtractArchitectureSummary:
         assert extract_architecture_summary(messages) is None
 
     def test_truncates_long_summary(self):
-        long_text = "A" * 600
+        long_text = "A" * 1200
         messages = [_msg("assistant", long_text, agent_type="architect")]
         summary = extract_architecture_summary(messages)
         assert summary is not None
-        assert len(summary) <= 500
+        assert len(summary) <= 1000
 
 
 class TestExtractTcoData:
