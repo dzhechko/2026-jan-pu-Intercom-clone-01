@@ -118,7 +118,7 @@ def detect_intent(message: str, context: dict | None = None) -> str:
 def select_agent_type(intent: str) -> str:
     """Map intent to agent type."""
     mapping = {
-        "migration": "architect",
+        "migration": "migration",
         "new_deployment": "architect",
         "cost_optimization": "cost_calculator",
         "compliance_check": "compliance",

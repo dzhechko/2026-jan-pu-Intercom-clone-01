@@ -59,8 +59,8 @@ class TestIntentDetection:
 class TestAgentSelection:
     """Test agent type selection from intent."""
 
-    def test_migration_routes_to_architect(self):
-        assert select_agent_type("migration") == "architect"
+    def test_migration_routes_to_migration(self):
+        assert select_agent_type("migration") == "migration"
 
     def test_new_deployment_routes_to_architect(self):
         assert select_agent_type("new_deployment") == "architect"

@@ -96,7 +96,7 @@
       "id": "migration-agent",
       "name": "Migration Agent",
       "description": "Step-by-step migration planning from on-premise/other clouds to Cloud.ru",
-      "status": "planned",
+      "status": "done",
       "files": ["prompts/migration.md"],
       "depends_on": ["architect-agent"],
       "sprint": "v1.0"
@@ -105,7 +105,7 @@
       "id": "ai-factory-agent",
       "name": "AI Factory Agent (GPU)",
       "description": "GPU infrastructure recommendations for ML/AI workloads on Cloud.ru",
-      "status": "planned",
+      "status": "done",
       "files": ["prompts/ai_factory.md"],
       "depends_on": ["architect-agent"],
       "sprint": "v1.0"
