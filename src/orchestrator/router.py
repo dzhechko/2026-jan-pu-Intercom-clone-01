@@ -12,6 +12,7 @@ from src.models.conversation import Conversation
 from src.models.message import Message
 from src.orchestrator.intent import detect_intent, select_agent_type
 from src.rag.search import RAGSearch
+from src.services.lead_qualification import check_lead_qualification
 
 logger = get_logger(__name__)
 
@@ -102,6 +103,12 @@ class Orchestrator:
             )
 
         await self.db.flush()
+
+        # 9. Check lead qualification (non-blocking)
+        try:
+            await check_lead_qualification(conversation, self.db, self.tenant_id)
+        except Exception:
+            logger.exception("lead_qualification_failed", conversation_id=conversation.id)
 
         logger.info(
             "message_processed",
