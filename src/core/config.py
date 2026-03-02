@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     minio_root_user: str = "minioadmin"
     minio_root_password: str = "minioadmin"
 
+    # CRM Integration
+    bitrix24_webhook_url: str = ""  # Empty = disabled. Format: https://{domain}.bitrix24.ru/rest/{user_id}/{secret}/
+
     # Rate Limiting
     rate_limit_per_min: int = 30
 

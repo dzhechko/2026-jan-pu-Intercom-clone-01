@@ -123,8 +123,8 @@
       "id": "roi-analytics",
       "name": "ROI Analytics Dashboard",
       "description": "Consultation metrics, conversion tracking, ROI calculation for sales team",
-      "status": "planned",
-      "files": ["admin/"],
+      "status": "done",
+      "files": ["admin/src/pages/RoiAnalyticsPage.tsx", "src/api/routes/dashboard.py"],
       "depends_on": ["admin-dashboard-basic", "lead-qualification"],
       "sprint": "v1.0"
     },
@@ -132,8 +132,8 @@
       "id": "bitrix24-crm",
       "name": "Bitrix24 CRM Integration",
       "description": "Automatic lead and deal creation in Bitrix24 from qualified consultations",
-      "status": "planned",
-      "files": [],
+      "status": "done",
+      "files": ["src/services/crm.py", "tests/unit/test_crm.py"],
       "depends_on": ["lead-qualification"],
       "sprint": "v1.0"
     }

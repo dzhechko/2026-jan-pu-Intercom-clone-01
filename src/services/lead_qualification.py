@@ -318,4 +318,25 @@ async def check_lead_qualification(
         contact_has_company=bool(contact.get("company")),
     )
 
+    # 6. Push to CRM if qualified (non-blocking)
+    if qualification in ("hot", "qualified") and not lead.crm_external_id:
+        try:
+            from src.services.crm import Bitrix24Client
+
+            crm = Bitrix24Client()
+            if crm.enabled:
+                external_id = await crm.push_lead(
+                    contact=contact,
+                    qualification=qualification,
+                    estimated_deal_value=float(lead.estimated_deal_value) if lead.estimated_deal_value else None,
+                    intent=conversation.context.get("detected_intent"),
+                    architecture_summary=architecture_summary,
+                )
+                if external_id:
+                    lead.crm_external_id = external_id
+                    await db.flush()
+                    logger.info("crm_lead_pushed", conversation_id=conversation.id, external_id=external_id)
+        except Exception:
+            logger.exception("crm_push_failed", conversation_id=conversation.id)
+
     return lead

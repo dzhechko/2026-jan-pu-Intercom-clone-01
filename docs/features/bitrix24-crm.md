@@ -59,4 +59,5 @@ As a sales team, I want qualified leads to be automatically created in Bitrix24,
 - Uses: Lead model (contact, qualification, estimated_deal_value, crm_external_id)
 - External: Bitrix24 REST API via webhook
 
-## Status: PLANNED
+## Status: DONE
+Committed: `feat: Bitrix24 CRM integration (contact + deal push for hot/qualified leads)`
