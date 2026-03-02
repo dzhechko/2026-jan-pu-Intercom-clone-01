@@ -13,8 +13,11 @@
    - Define implementation order (dependencies first)
    - Identify tests to write
    - Estimate complexity (S/M/L)
-4. **Write plan** to `docs/features/$FEATURE_NAME.md`
-5. **Auto-commit:** `docs: plan for $FEATURE_NAME`
+4. **Write plan** to `docs/plans/$FEATURE_NAME.md`
+   - NOTE: `docs/plans/` is for lightweight plans from `/plan`
+   - `docs/features/<name>/sparc/` is for full SPARC lifecycle from `/feature`
+   - These paths MUST NOT conflict — never write a flat .md to `docs/features/`
+5. **Auto-commit:** `docs(plan): plan for $FEATURE_NAME`
 
 ## Plan Template
 

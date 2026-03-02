@@ -129,6 +129,10 @@ Feature completed: <feature-name>
    Commits: <count>
    Tests: <passed>/<total>
 
+   IF complex fallback was used:
+   Note: /feature-ent was not available. Consider re-generating toolkit
+      with idea2prd-manual pipeline for enterprise-grade planning.
+
    Next suggested: /next or /go for the next feature
 ```
 

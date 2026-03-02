@@ -12,6 +12,10 @@
   Critical: command was ad-hoc simplified instead of generated from feature-lifecycle.md template.
   Rule was correct, command was not. Root cause: /replicate Phase 3 generation gap.
 
+- [005: /plan and /feature write to same directory](005-plan-vs-feature-path-conflict.md)
+  High: /plan wrote flat files to docs/features/ which conflicts with /feature's per-feature directories.
+  Fixed: /plan now writes to docs/plans/. No template exists for /plan — needs one.
+
 ## Feature Implementation
 
 - [002: Phase 4 REVIEW catches real issues](002-feature-review-phase-value.md)
