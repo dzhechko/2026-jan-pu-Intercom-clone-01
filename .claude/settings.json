@@ -1,25 +1,40 @@
 {
   "hooks": {
-    "PostCommit": [
-      {
-        "command": "echo '✅ Committed: $(git log -1 --pretty=%s)'"
-      }
-    ],
     "Stop": [
       {
-        "command": "bash -c 'if [ -f \".claude/feature-roadmap.json\" ] && git diff --name-only -- \".claude/feature-roadmap.json\" 2>/dev/null | grep -q .; then git add .claude/feature-roadmap.json && git commit -m \"docs(roadmap): update feature status\" && echo \"✅ feature-roadmap.json auto-committed\"; fi'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if [ -f \".claude/feature-roadmap.json\" ] && git diff --name-only -- \".claude/feature-roadmap.json\" 2>/dev/null | grep -q .; then git add .claude/feature-roadmap.json && git commit -m \"docs(roadmap): update feature status\" && echo \"feature-roadmap.json auto-committed\"; fi'"
+          }
+        ]
       },
       {
-        "command": "bash -c 'DIR=\"myinsights\"; CLAUDE=\"CLAUDE.md\"; if [ -d \"$DIR\" ] && (git diff --name-only -- \"$DIR\" 2>/dev/null | grep -q . || git diff --name-only --cached -- \"$DIR\" 2>/dev/null | grep -q . || git ls-files --others --exclude-standard -- \"$DIR\" 2>/dev/null | grep -q .); then if ! grep -q \"myinsights\" \"$CLAUDE\" 2>/dev/null; then printf \"\\n## Development Insights\\nIndex: [myinsights/1nsights.md](myinsights/1nsights.md) — check here FIRST before debugging.\\nOn error: grep the error string in the index, read only the matched detail file.\\nCapture new findings: /myinsights [title]\\n\" >> \"$CLAUDE\"; git add \"$CLAUDE\"; echo \"myinsights/ reference added to CLAUDE.md\"; fi; git add \"$DIR\"; git commit -m \"docs(insights): update knowledge base\"; echo \"✅ myinsights/ auto-committed\"; fi'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'DIR=\"myinsights\"; CLAUDE=\"CLAUDE.md\"; if [ -d \"$DIR\" ] && (git diff --name-only -- \"$DIR\" 2>/dev/null | grep -q . || git diff --name-only --cached -- \"$DIR\" 2>/dev/null | grep -q . || git ls-files --others --exclude-standard -- \"$DIR\" 2>/dev/null | grep -q .); then if ! grep -q \"myinsights\" \"$CLAUDE\" 2>/dev/null; then printf \"\\n## Development Insights\\nIndex: [myinsights/1nsights.md](myinsights/1nsights.md) — check here FIRST before debugging.\\nOn error: grep the error string in the index, read only the matched detail file.\\nCapture new findings: /myinsights [title]\\n\" >> \"$CLAUDE\"; git add \"$CLAUDE\"; echo \"myinsights/ reference added to CLAUDE.md\"; fi; git add \"$DIR\"; git commit -m \"docs(insights): update knowledge base\"; echo \"myinsights/ auto-committed\"; fi'"
+          }
+        ]
       },
       {
-        "command": "bash -c 'if [ -d \"docs/plans\" ] && (git diff --name-only -- \"docs/plans\" 2>/dev/null | grep -q . || git ls-files --others --exclude-standard -- \"docs/plans\" 2>/dev/null | grep -q .); then git add docs/plans && git commit -m \"docs(plans): auto-commit implementation plans\" && echo \"✅ docs/plans/ auto-committed\"; fi'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if [ -d \"docs/plans\" ] && (git diff --name-only -- \"docs/plans\" 2>/dev/null | grep -q . || git ls-files --others --exclude-standard -- \"docs/plans\" 2>/dev/null | grep -q .); then git add docs/plans && git commit -m \"docs(plans): auto-commit implementation plans\" && echo \"docs/plans/ auto-committed\"; fi'"
+          }
+        ]
       }
     ],
     "SessionStart": [
       {
-        "command": "python3 .claude/hooks/feature-context.py",
-        "timeout": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/feature-context.py",
+            "timeout": 10000
+          }
+        ]
       }
     ]
   }

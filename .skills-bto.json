@@ -1,0 +1,30 @@
+{
+  "version": "1.2.0",
+  "installedAt": "2026-03-02T19:53:02.625Z",
+  "components": [
+    "skill",
+    "commands",
+    "rules",
+    "agents",
+    "shards"
+  ],
+  "files": [
+    ".claude/agents/bto-judge-panel.md",
+    ".claude/agents/bto-optimizer-worker.md",
+    ".claude/commands/bto-build.md",
+    ".claude/commands/bto-optimize.md",
+    ".claude/commands/bto-test.md",
+    ".claude/commands/bto.md",
+    ".claude/rules/bto-quality-gates.md",
+    ".claude/shards/bto-evaluation.shard.md",
+    ".claude/skills/bto/SKILL.md",
+    ".claude/skills/bto/examples/sample-eval-report.md",
+    ".claude/skills/bto/modules/build.md",
+    ".claude/skills/bto/modules/optimize.md",
+    ".claude/skills/bto/modules/test.md",
+    ".claude/skills/bto/references/eval-patterns.md",
+    ".claude/skills/bto/references/judge-rubrics.md",
+    ".claude/skills/bto/references/optimization-methods.md",
+    ".claude/skills/bto/references/quality-checklist.md"
+  ]
+}
