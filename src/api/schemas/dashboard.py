@@ -41,6 +41,34 @@ class ChannelStatsSchema(BaseModel):
     conversion_rate: float
 
 
+class ConversationItemSchema(BaseModel):
+    id: str
+    channel: str
+    status: str
+    intent: str | None = None
+    created_at: dt.datetime | None = None
+
+
+class PaginatedConversationsSchema(BaseModel):
+    items: list[ConversationItemSchema]
+    total: int
+
+
+class LeadItemSchema(BaseModel):
+    id: str
+    conversation_id: str
+    contact: dict = {}
+    qualification: str
+    intent: str | None = None
+    estimated_deal_value: float | None = None
+    created_at: dt.datetime | None = None
+
+
+class PaginatedLeadsSchema(BaseModel):
+    items: list[LeadItemSchema]
+    total: int
+
+
 class RoiMetricsSchema(BaseModel):
     # Core ROI
     total_consultations: int

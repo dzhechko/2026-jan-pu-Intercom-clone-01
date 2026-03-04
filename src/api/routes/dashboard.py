@@ -8,10 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.schemas.dashboard import (
     ChannelStatsSchema,
+    ConversationItemSchema,
     DailyTrendSchema,
     IntentCountSchema,
     LeadBreakdownSchema,
+    LeadItemSchema,
     MetricsResponseSchema,
+    PaginatedConversationsSchema,
+    PaginatedLeadsSchema,
     RoiMetricsSchema,
 )
 from src.core.database import get_db
@@ -239,3 +243,87 @@ async def get_roi_metrics(
         channel_stats=channel_stats,
         daily_trend=daily_trend,
     )
+
+
+@router.get("/conversations", response_model=PaginatedConversationsSchema)
+async def get_conversations(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List conversations for the dashboard."""
+    tenant_id = user.get("tenant_id")
+    offset = (page - 1) * limit
+
+    # Total count
+    count_result = await db.execute(
+        select(func.count(Conversation.id)).where(Conversation.tenant_id == tenant_id)
+    )
+    total = count_result.scalar() or 0
+
+    # Paginated items
+    result = await db.execute(
+        select(Conversation)
+        .where(Conversation.tenant_id == tenant_id)
+        .order_by(Conversation.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    conversations = list(result.scalars().all())
+
+    items = [
+        ConversationItemSchema(
+            id=str(c.id),
+            channel=c.channel,
+            status=c.status,
+            intent=c.context.get("intent") if c.context else None,
+            created_at=c.created_at,
+        )
+        for c in conversations
+    ]
+
+    return PaginatedConversationsSchema(items=items, total=total)
+
+
+@router.get("/leads", response_model=PaginatedLeadsSchema)
+async def get_leads(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List leads for the dashboard."""
+    tenant_id = user.get("tenant_id")
+    offset = (page - 1) * limit
+
+    # Total count
+    count_result = await db.execute(
+        select(func.count(Lead.id)).where(Lead.tenant_id == tenant_id)
+    )
+    total = count_result.scalar() or 0
+
+    # Paginated items
+    result = await db.execute(
+        select(Lead)
+        .where(Lead.tenant_id == tenant_id)
+        .order_by(Lead.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    leads = list(result.scalars().all())
+
+    items = [
+        LeadItemSchema(
+            id=str(lead.id),
+            conversation_id=str(lead.conversation_id),
+            contact=lead.contact or {},
+            qualification=lead.qualification,
+            intent=lead.intent,
+            estimated_deal_value=float(lead.estimated_deal_value) if lead.estimated_deal_value else None,
+            created_at=lead.created_at,
+        )
+        for lead in leads
+    ]
+
+    return PaginatedLeadsSchema(items=items, total=total)
